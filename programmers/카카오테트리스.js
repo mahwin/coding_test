@@ -29,8 +29,8 @@ function solution(board) {
             return false;
           }
         }
-        return true;
       }
+      return true;
     }
   };
 
@@ -43,8 +43,8 @@ function solution(board) {
         tetrisObj[key].forEach(([row, col]) => {
           board[row][col] = 0;
         });
+        console.log(key);
         delete tetrisObj[[key]];
-
         answer++;
       }
     });
@@ -55,15 +55,10 @@ function solution(board) {
 
 console.log(
   solution([
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 4, 0, 0, 0],
-    [0, 0, 0, 0, 0, 4, 4, 0, 0, 0],
-    [0, 0, 0, 0, 3, 0, 4, 0, 0, 0],
-    [0, 0, 0, 2, 3, 0, 0, 0, 5, 5],
-    [1, 2, 2, 2, 3, 3, 0, 0, 0, 5],
-    [1, 1, 1, 0, 0, 0, 0, 0, 0, 5],
+    [0, 0, 1, 1, 1],
+    [0, 0, 0, 1, 0],
+    [3, 0, 0, 2, 0],
+    [3, 2, 2, 2, 0],
+    [3, 3, 0, 0, 0],
   ])
 );
