@@ -56,7 +56,7 @@ function solution(n, k, cmd) {
       case "Z":
         const insertNode = stack.pop();
         const prevNode = insertNode.prev;
-        const nextNode = insertNode.Node;
+        const nextNode = insertNode.next;
         if (prevNode) {
           prevNode.next = insertNode;
         }
