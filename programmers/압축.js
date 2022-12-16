@@ -1,28 +1,27 @@
 function solution(msg) {
+  const alphas = "abcdefghijklmnopqrstuvwxyz".toUpperCase();
+  const compressObj = new Map();
+  alphas.split("").forEach((alpha, i) => {
+    compressObj.set(alpha, i + 1);
+  });
+
   let answer = [];
 
-  const items = "abcdefghijklmnopqrstuvwxyz".toLocaleUpperCase();
-  let dicMap = new Map();
-  for (let i = 1; i < items.length + 1; i++) {
-    dicMap.set(items[i - 1], i);
-  }
+  let key = "";
+  msg += "!";
+  for (let i = 0; i < msg.length; i++) {
+    key += msg[i];
 
-  let maxIdx = msg.length;
-  let idx = 0;
-  while (idx < maxIdx) {
-    let str = "";
-    for (let j = idx; j < maxIdx; j++) {
-      let key = msg.slice(idx, j + 1);
-      if (!dicMap.has(key)) {
-        key = msg.slice(idx, j + 1);
-        dicMap.set(key, dicMap.size + 1);
-        break;
-      } else {
-        str = key;
-      }
+    if (compressObj.has(key)) continue;
+    else {
+      compressObj.set(key, compressObj.size + 1);
+      answer.push(compressObj.get(key.slice(0, -1)));
+      i--;
+      key = "";
     }
-    answer.push(dicMap.get(str));
-    idx += str.length;
   }
+  answer.pop();
   return answer;
 }
+
+console.log(solution("KAKAO"));
