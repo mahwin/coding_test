@@ -1,72 +1,124 @@
-let input = `4 8 2
-1 2 4
-1 3 2
-1 4 7
-2 1 1
-2 3 5
-3 1 2
-3 4 4
-4 2 3`.split("\n");
+// let input = `4 8 2
+// 1 2 4
+// 1 3 2
+// 1 4 7
+// 2 1 1
+// 2 3 5
+// 3 1 2
+// 3 4 4
+// 4 2 3`.split("\n");
 
-let [N, M, X] = input[0].split(" ").map(Number);
-input = input.slice(1).map((el) => el.split(" ").map(Number));
+// let [N, M, X] = input[0].split(" ").map(Number);
+// input = input.slice(1).map((el) => el.split(" ").map(Number));
 
-// 1.출발 노드 설정
-// 2.출발 노드를 기준으로 각 노드의 최소 비용을 저장
-// 3.방문하지 않은 노드 중에서 가장 비용이 적은 노드를 선택
-// 4.해당 노드를 거쳐서 특정한 노드를 가느 ㄴ경우를 고려하여 최소 비용을갱신
-// 위 과정 3,4 번 반복
+// // 1.출발 노드 설정
+// // 2.출발 노드를 기준으로 각 노드의 최소 비용을 저장
+// // 3.방문하지 않은 노드 중에서 가장 비용이 적은 노드를 선택
+// // 4.해당 노드를 거쳐서 특정한 노드를 가느 ㄴ경우를 고려하여 최소 비용을갱신
+// // 위 과정 3,4 번 반복
 
-const graph = Array.from({ length: N + 1 }, () => []);
+// const graph = Array.from({ length: N + 1 }, () => []);
 
-for (let i = 0; i < input.length; i++) {
-  const [from, to, cost] = input[i];
+// for (let i = 0; i < input.length; i++) {
+//   const [from, to, cost] = input[i];
 
-  graph[from].push([to, cost]);
-}
+//   graph[from].push([to, cost]);
+// }
 
-function Dijkstra(start, N, graph) {
-  const distance = Array.from({ length: N + 1 }, () => Infinity);
+// function Dijkstra(start, N, graph) {
+//   const distance = Array.from({ length: N + 1 }, () => Infinity);
+//   distance[start] = 0;
+
+//   const queue = [];
+//   queue.push([start, 0]);
+
+//   while (queue.length) {
+//     const qdistance = queue.map((x) => x[1]);
+//     const idx = qdistance.indexOf(Math.min(...qdistance));
+
+//     const node = queue[idx][0];
+
+//     const nodeDistance = queue[idx][1];
+
+//     //원본 배열 제거
+//     queue.splice(idx, 1);
+
+//     if (distance[node] < nodeDistance) continue;
+
+//     for (let j = 0; j < graph[node].length; j++) {
+//       const [next, nextDis] = graph[node][j];
+
+//       const distanceSum = nextDis + nodeDistance;
+
+//       if (distance[next] > distanceSum) {
+//         distance[next] = distanceSum;
+//         queue.push([next, distanceSum]);
+//       }
+//     }
+//   }
+
+//   return distance;
+// }
+
+// let max = -Infinity;
+// let resultArr = [[]];
+// for (let student = 1; student <= N; student++) {
+//   resultArr.push(Dijkstra(student, N, graph));
+// }
+
+// resultArr.forEach((dist, i) => {
+//   max = Math.max(dist[X] + resultArr[X][i]);
+// });
+// console.log(max);
+
+const Dijkstra = (start, numberOfNodes, infos) => {
+  const graph = Array.from({ length: numberOfNodes + 1 }, () => []);
+
+  infos.forEach(([from, to, dist]) => {
+    graph[from].push([to, dist]);
+    graph[to].push([from, dist]);
+  });
+  const distance = Array.from({ length: numberOfNodes + 1 }, () => Infinity);
   distance[start] = 0;
-
-  const queue = [];
-  queue.push([start, 0]);
-
+  const queue = [[start, 0]];
   while (queue.length) {
-    const qdistance = queue.map((x) => x[1]);
-    const idx = qdistance.indexOf(Math.min(...qdistance));
+    const distanceArr = queue.map((el) => el[1]);
 
-    const node = queue[idx][0];
+    const smallIdx = distanceArr.indexOf(Math.min(...distanceArr));
 
-    const nodeDistance = queue[idx][1];
+    const [node, dist] = queue[smallIdx];
 
-    //원본 배열 제거
-    queue.splice(idx, 1);
+    // 큐에서 삭제
 
-    if (distance[node] < nodeDistance) continue;
+    queue.splice(smallIdx, 1);
 
-    for (let j = 0; j < graph[node].length; j++) {
-      const [next, nextDis] = graph[node][j];
+    if (distance[node] < dist) continue;
 
-      const distanceSum = nextDis + nodeDistance;
+    for (let i = 0; i < graph[node].length; i++) {
+      console.log("????");
+      const [nextNode, nextDist] = graph[node][i];
+      console.log(nextNode, nextDist);
+      const sumDist = dist + nextDist;
 
-      if (distance[next] > distanceSum) {
-        distance[next] = distanceSum;
-        queue.push([next, distanceSum]);
+      console.log(distance[node]);
+
+      if (distance[nextNode] > sumDist) {
+        distance[nextNode] = sumDist;
+        queue.push([nextNode, sumDist]);
       }
     }
   }
-
   return distance;
-}
+};
 
-let max = -Infinity;
-let resultArr = [[]];
-for (let student = 1; student <= N; student++) {
-  resultArr.push(Dijkstra(student, N, graph));
-}
+let infos = [
+  [2, 1, 4],
+  [1, 4, 5],
+  [2, 3, 5],
+  [4, 3, 3],
+  [6, 1, 11],
+  [4, 5, 3],
+  [6, 5, 2],
+];
 
-resultArr.forEach((dist, i) => {
-  max = Math.max(dist[X] + resultArr[X][i]);
-});
-console.log(max);
+console.log(Dijkstra(1, 6, infos));
