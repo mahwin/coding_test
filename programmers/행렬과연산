@@ -10,15 +10,11 @@ class Deque {
   constructor() {
     this.head = null;
     this.tail = null;
-    this.size = 0;
+    this.count = 0;
   }
 
-  notEmpty() {
-    if (this.size) return false;
-    else return true;
-  }
-
-  pushFront(element) {
+  unshift(value) {
+    const element = new Node(value);
     if (this.head === null) {
       this.head = element;
       this.tail = element;
@@ -31,7 +27,8 @@ class Deque {
     this.count++;
   }
 
-  pushBack(element) {
+  push(value) {
+    const element = new Node(value);
     if (this.tail === null) {
       this.head = element;
       this.tail = element;
@@ -43,28 +40,41 @@ class Deque {
     this.count++;
   }
 
-  popFront() {
-    if (this.notEmpty()) {
-      let temp = this.head;
-      temp.next.prev = null;
-      this.head = temp.next;
-      this.count--;
+  shift() {
+    if (this.count === 0) return null;
 
-      return temp.value;
+    let temp = this.head.next;
+    let node = this.head;
+    this.head = temp;
+
+    node.prev = null;
+    node.next = null;
+
+    this.count--;
+
+    if (this.count == 0) {
+      this.head = null;
+      this.tail = null;
     }
+    return node.value;
   }
 
-  popBack() {
-    if (this.notEmpty()) {
-      let temp = this.tail;
-      temp.prev.next = null;
-      this.tail = temp.prev;
-      this.count--;
-      return temp.value;
+  pop() {
+    if (this.count === 0) return null;
+    let temp = this.tail.prev;
+    let node = this.tail;
+    this.tail = temp;
+    node.prev = null;
+    node.next = null;
+    this.count--;
+    if (this.count === 0) {
+      this.head = null;
+      this.tail = null;
     }
+    return node.value;
   }
   getArray() {
-    if (this.notEmpty()) {
+    if (this.count !== 0) {
       let temp = this.head;
       let arr = [];
       while (temp) {
@@ -77,62 +87,60 @@ class Deque {
 }
 
 function solution(rc, operations) {
-  var answer = [[]];
+  const ROW_LENGTH = rc.length;
+  const COL_LENGTH = rc[0].length;
 
-  const rowLength = rc.length;
-  const colLength = rc[0].length;
-  let deque = new Deque();
-  let rowIdx = [];
-  for (let i = 0; i < rowLength; i++) {
-    deque.pushBack(new Node(i));
-    rowIdx.push(i);
-  }
+  let left = new Deque();
+  let right = new Deque();
+  let inners = new Deque();
 
-  for (let operation of operations) {
-    if (operation === "Rotate") {
-      rotateRc(rc, rowLength, colLength, rowIdx);
-    } else {
-      rowIdx = shiftRc(deque);
+  for (let i = 0; i < ROW_LENGTH; i++) {
+    inners.push(new Deque());
+
+    let centerDeque = inners.tail.value;
+
+    for (let j = 0; j < COL_LENGTH; j++) {
+      if (j == 0) left.push(rc[i][j]);
+      else if (j == COL_LENGTH - 1) right.push(rc[i][j]);
+      else centerDeque.push(rc[i][j]);
     }
   }
 
-  return rowIdx.map((row) => rc[row]);
-}
-
-const rotateRc = (rc, rowLength, colLength, rowIdx) => {
-  let remain = rc[rowIdx[0]][0];
-  const [x1, y1, x2, y2] = [0, 0, rowLength - 1, colLength - 1];
-
-  for (let i = x1; i < x2; i++) {
-    rc[rowIdx[i]][y1] = rc[rowIdx[i + 1]][y1];
+  for (let operation of operations) {
+    if (operation === "ShiftRow") {
+      left.unshift(left.pop());
+      right.unshift(right.pop());
+      inners.unshift(inners.pop());
+    } else {
+      inners.head.value.unshift(left.shift());
+      right.unshift(inners.head.value.pop());
+      inners.tail.value.push(right.pop());
+      left.push(inners.tail.value.shift());
+    }
   }
 
-  for (let i = y1; i < y2; i++) {
-    rc[rowIdx[x2]][i] = rc[rowIdx[x2]][i + 1];
+  for (let i = 0; i < ROW_LENGTH; ++i) {
+    let innerDeq = inners.shift();
+
+    for (let j = 0; j < COL_LENGTH; ++j) {
+      if (j == 0) {
+        rc[i][j] = left.shift();
+      } else if (j == COL_LENGTH - 1) {
+        rc[i][j] = right.shift();
+      } else {
+        rc[i][j] = innerDeq.shift();
+      }
+    }
   }
-  for (let i = x2; i > x1; i--) {
-    rc[rowIdx[i]][y2] = rc[rowIdx[i - 1]][y2];
-  }
-  for (let i = y2; i > y1; i--) {
-    rc[rowIdx[x1]][i] = rc[rowIdx[x1]][i - 1];
-  }
-  rc[rowIdx[0]][1] = remain;
 
   return rc;
-};
-
-const shiftRc = (deque) => {
-  let remain = deque.popBack();
-  deque.pushFront(new Node(remain));
-  return deque.getArray();
-};
+}
 
 console.log(
   solution(
     [
-      [1, 2, 3],
-      [4, 5, 6],
-      [7, 8, 9],
+      [1, 2],
+      [3, 4],
     ],
     ["Rotate", "ShiftRow"]
   )
