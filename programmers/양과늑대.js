@@ -1,26 +1,26 @@
 function solution(info, edges) {
-  let answer = 1;
-  const length = info.length;
-  const graph = Array.from({ length }, () => []);
+  let answer = 0;
+
+  const graph = Array.from({ length: info.length }, () => []);
 
   for (let i = 0; i < edges.length; i++) {
     const [from, to] = edges[i];
     graph[from].push(to);
   }
 
-  const dfs = (sheep, wolf, currentNode, possible) => {
-    if (info[currentNode]) wolf++;
-    else sheep++;
+  const dfs = (sheep, wolf, node, possible) => {
+    info[node] === 1 ? wolf++ : sheep++;
     if (wolf === sheep) return;
 
-    answer = Math.max(answer, sheep);
+    answer = answer < sheep ? sheep : answer;
 
-    let currentIndex = possible.indexOf(currentNode);
-    let newPossible = [...possible];
-    newPossible.push(...graph[currentNode]);
-    newPossible.splice(currentIndex, 1);
-    for (const next of newPossible) {
-      dfs(sheep, wolf, next, newPossible);
+    let currentIdx = possible.indexOf(node);
+    let copyPossible = [...possible];
+    copyPossible.splice(currentIdx, 1);
+    copyPossible.push(...graph[node]);
+
+    for (const next of copyPossible) {
+      dfs(sheep, wolf, next, copyPossible);
     }
   };
 
@@ -28,6 +28,7 @@ function solution(info, edges) {
 
   return answer;
 }
+
 solution(
   [0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1],
   [
