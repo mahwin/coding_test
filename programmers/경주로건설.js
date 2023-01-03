@@ -1,37 +1,54 @@
 function solution(board) {
-  const maxIdx = board.length - 1;
-  // 우, 하, 좌, 상
-  const direction = [
+  const N = board.length;
+  // DIRECTIONS 배열의 index가 실제 방향을 탐색하는데 쓰이는 값이다. 오/왼/위/아래 -> 0/1/2/3
+  const DIRECTIONS = [
     [1, 0],
-    [0, 1],
     [-1, 0],
     [0, -1],
+    [0, 1],
   ];
-  // x, y, 직전 방향(상하:1, 좌우:2), cost
-  const q = [[0, 0, null, 0]];
-  while (q.length) {
-    const [x, y, dir, preCost] = q.shift();
+  const dp = Array(N)
+    .fill()
+    .map(() =>
+      Array(N)
+        .fill()
+        .map(() => Array(4).fill(Infinity))
+    );
 
-    // 바로 직전의 비용인 cost가 지금 지점의 값보다 크다면 다른 루트로 이 지점을 오는게 더 효율적이라 pass
-    if (board[x][y] < preCost && board[x][y] > 0) continue;
-    board[x][y] = preCost;
+  const isValid = (x, y) =>
+    x >= 0 && x < N && y >= 0 && y < N && board[x][y] !== 1;
 
-    direction.forEach(([i, j], ndir) => {
-      // |ndir - dir| === 2면 왔던 방향으로 다시 돌아가는 경우
-      if (dir !== null && Math.abs(ndir - dir) === 2) return;
+  console.log(isValid(3, 3));
 
-      const [nx, ny] = [x + i, y + j];
-      if (0 > nx || nx > maxIdx) return; // 좌우로 이동이 경계 밖
-      if (0 > ny || ny > maxIdx) return; // 상하 이동이 경계 밖
-      if (board[nx][ny] === 1) return; // 벽
+  const queue = [
+    [0, 0, 0, 0],
+    [0, 0, 0, 3],
+  ];
 
-      q.push([
-        nx,
-        ny,
-        ndir,
-        dir !== null && dir !== ndir ? preCost + 600 : preCost + 100,
-      ]);
-    });
+  while (queue.length) {
+    const [x, y, cost, dir] = queue.shift();
+    for (let i = 0; i < 4; i++) {
+      const [mx, my] = DIRECTIONS[i];
+      const [_x, _y] = [x + mx, y + my];
+      if (isValid(_x, _y)) {
+        let new_cost = cost + 100;
+        if (dir !== i) new_cost += 500;
+        if (new_cost < dp[_x][_y][i]) {
+          // => 3차원 배열로 Dp를 구성하지 않으면 값이 역전되는 경우가 발생함 그래서 모든 방향으로 dp 값을 확장해 줘여함
+          dp[_x][_y][i] = new_cost;
+          queue.push([_x, _y, new_cost, i]);
+        }
+      }
+    }
   }
-  return board[maxIdx][maxIdx];
+
+  return Math.min(...dp[N - 1][N - 1]);
 }
+
+console.log(
+  solution([
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0],
+  ])
+);
