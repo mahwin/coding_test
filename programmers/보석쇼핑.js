@@ -1,20 +1,17 @@
 function solution(gems) {
-  let gemsLength = gems.length;
-  let answer = [0, gemsLength - 1];
-  let totalNum = new Set(gems).size;
-
+  let answer = [0, gems.length - 1];
+  let amountOfGem = new Set(gems).size;
   let [left, right] = [0, 0];
 
   let gemCounter = new Map();
   gemCounter.set(gems[0], 1);
 
-  while (left <= right && right <= gemsLength - 1) {
-    if (gemCounter.size === totalNum) {
-      const outGem = gems[left];
-      if (right - left < answer[1] - answer[0]) {
+  while (left <= right && right < gems.length) {
+    if (amountOfGem === gemCounter.size) {
+      if (answer[1] - answer[0] > right - left) {
         answer = [left, right];
       }
-
+      const outGem = gems[left];
       if (gemCounter.get(outGem) > 1) {
         gemCounter.set(outGem, gemCounter.get(outGem) - 1);
       } else {
@@ -23,11 +20,12 @@ function solution(gems) {
       left++;
     } else {
       right++;
-      const inGem = gems[right];
-      gemCounter.set(inGem, 1 + (gemCounter.get(inGem) || 0));
+      let inGem = gems[right];
+      gemCounter.set(inGem, (gemCounter.get(inGem) || 0) + 1);
     }
   }
+
   return answer.map((n) => n + 1);
 }
 
-console.log(solution(["XYZ", "XYZ", "XYZ"]));
+console.log(solution(["AA", "AB", "AC", "AA", "AC"]));
