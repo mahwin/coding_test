@@ -1,43 +1,74 @@
 function solution(user_id, banned_id) {
-  const isBanned = (name, ban) => {
-    if (name.length !== ban.length) return false;
-    for (let i = 0; i < name.length; i++) {
-      if (ban[i] === "*") continue;
-
-      if (ban[i] !== name[i]) return false;
+  const isBanned = (id, banId) => {
+    if (id.length !== banId.length) return false;
+    for (let i = 0; i < id.length; i++) {
+      if (banId[i] === "*") continue;
+      if (banId[i] !== id[i]) return false;
     }
     return true;
   };
 
-  let arr = Array.from({ length: banned_id.length }, () => []);
+  let banArr = Array.from({ length: banned_id.length }, () => []);
 
-  user_id.forEach((name) => {
-    banned_id.forEach((ban, banIdx) => {
-      if (isBanned(name, ban)) arr[banIdx].push(name);
+  user_id.forEach((id) => {
+    banned_id.forEach((banId, bandIdx) => {
+      if (isBanned(id, banId)) {
+        banArr[bandIdx].push(id);
+      }
     });
   });
 
-  let banSet = new Set();
-  // const visited = Array.from({ length: arr.length }, () => false);
-  const dfs = (target, tmp) => {
-    if (target === tmp.length) {
-      banSet.add([...tmp].sort().join(""));
+  let result = new Set();
+  let banLength = banArr.length;
+  let visited = Array.from({ lengt: user_id.length }).fill(false);
+
+  const dfs = (index, arr) => {
+    if (arr.length === banLength) {
+      arr.sort((a, b) => {
+        return a.length === b.length ? (a > b ? -1 : 1) : a.length - b.length;
+      });
+      result.add(arr.join(""));
       return;
     }
 
-    for (let next of arr[tmp.length]) {
-      if (tmp.includes(next)) continue;
-      tmp.push(next);
-      dfs(target, tmp);
-      tmp.pop();
+    for (let i = index; i < banLength; i++) {
+      if (visited[i]) continue;
+      visited[i] = true;
+      banArr[i].forEach((id) => {
+        if (!arr.includes(id)) {
+          dfs(i + 1, [...arr, id]);
+        }
+      });
+      visited[i] = false;
     }
   };
-  dfs(arr.length, []);
 
-  return banSet.size;
+  dfs(0, []);
+
+  return result.size;
 }
 
-solution(
-  ["frodo", "fradi", "crodo", "abc123", "frodoc"],
-  ["fr*d*", "*rodo", "******", "******"]
+console.log(
+  solution(
+    [
+      "aaaaaaaa",
+      "bbbbbbbb",
+      "cccccccc",
+      "dddddddd",
+      "eeeeeeee",
+      "ffffffff",
+      "gggggggg",
+      "hhhhhhhh",
+    ],
+    [
+      "********",
+      "********",
+      "********",
+      "********",
+      "********",
+      "********",
+      "********",
+      "********",
+    ]
+  )
 );
