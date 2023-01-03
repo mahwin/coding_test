@@ -1,34 +1,33 @@
 function solution(gems) {
-  let targetCount = new Set(gems).size;
-  if (targetCount === 1) return [1, 1];
-  let answer = [];
-  let min = Infinity;
-  let [startPoint, movePoint] = [0, 0];
-  let gemMap = new Map();
+  let gemsLength = gems.length;
+  let answer = [0, gemsLength - 1];
+  let totalNum = new Set(gems).size;
 
-  while (movePoint < gems.length) {
-    gemMap.has(gems[movePoint])
-      ? gemMap.set(gems[movePoint], gemMap.get(gems[movePoint]) + 1)
-      : gemMap.set(gems[movePoint], 1);
-    movePoint++;
+  let [left, right] = [0, 0];
 
-    if (gemMap.size === targetCount) {
-      while (startPoint < movePoint) {
-        if (gemMap.get(gems[startPoint]) > 1) {
-          gemMap.set(gems[startPoint], gemMap.get(gems[startPoint]) - 1);
-          startPoint++;
-        } else if (min > movePoint - startPoint) {
-          min = movePoint - startPoint;
-          answer = [startPoint + 1, movePoint];
-          break;
-        } else break;
+  let gemCounter = new Map();
+  gemCounter.set(gems[0], 1);
+
+  while (left <= right && right <= gemsLength - 1) {
+    if (gemCounter.size === totalNum) {
+      const outGem = gems[left];
+      if (right - left < answer[1] - answer[0]) {
+        answer = [left, right];
       }
+
+      if (gemCounter.get(outGem) > 1) {
+        gemCounter.set(outGem, gemCounter.get(outGem) - 1);
+      } else {
+        gemCounter.delete(outGem);
+      }
+      left++;
+    } else {
+      right++;
+      const inGem = gems[right];
+      gemCounter.set(inGem, 1 + (gemCounter.get(inGem) || 0));
     }
   }
-
-  return answer;
+  return answer.map((n) => n + 1);
 }
 
-console.log(
-  solution(["DIA", "RUBY", "RUBY", "DIA", "DIA", "EMERALD", "SAPPHIRE", "DIA"])
-);
+console.log(solution(["XYZ", "XYZ", "XYZ"]));
