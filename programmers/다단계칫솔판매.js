@@ -1,30 +1,33 @@
 function solution(enroll, referral, seller, amount) {
-  let incomeMap = new Map();
-  enroll.forEach((name) => incomeMap.set(name, 0));
+  let answer = [];
 
-  let graph = {};
-  enroll.forEach((name, i) => {
-    //추천인 그래프는 단방향임. and 한 명임.
-    graph[name] = referral[i];
+  const incomeMap = new Map();
+  enroll.forEach((name) => {
+    incomeMap.set(name, 0);
   });
 
-  for (let i in seller) {
-    let [name, price] = [seller[i], amount[i] * 100];
+  const graph = {};
+  referral.forEach((name, i) => {
+    name = name === "-" ? "center" : name;
+    graph[enroll[i]] = name;
+  });
 
-    while (true) {
-      let addPrice = Math.ceil(price * 0.9);
-      let referralPrice = price - addPrice;
-
-      if (graph[name] === "-") {
-        incomeMap.set(name, incomeMap.get(name) + addPrice);
-        break;
-      } else {
-        incomeMap.set(name, incomeMap.get(name) + addPrice);
-        price = referralPrice;
-      }
-      if (referralPrice === 0) break;
-      name = graph[name];
+  const dfs = (name, price) => {
+    if (name === "center" || price === 0) {
+      return;
     }
+
+    const currentPrice = Math.ceil(price * 0.9);
+    const referralPrice = price - currentPrice;
+    incomeMap.set(name, incomeMap.get(name) + currentPrice);
+
+    dfs(graph[name], referralPrice);
+  };
+
+  for (let i = 0; i < seller.length; i++) {
+    const name = seller[i];
+    const price = amount[i] * 100;
+    dfs(name, price);
   }
 
   return [...incomeMap.values()];
