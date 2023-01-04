@@ -1,56 +1,42 @@
+const HMToMin = (HM) => {
+  const [H, M] = HM.split(":").map(Number);
+  return H * 60 + M;
+};
+
+const MinToHM = (M) => {
+  let hour = Math.floor(M / 60);
+  let min = M - 60 * hour;
+  return (
+    hour.toString().padStart(2, "0") + ":" + min.toString().padStart(2, "0")
+  );
+};
+
 function solution(n, t, m, timetable) {
-  let answer = "";
-  let bus = 9 * 60;
-
-  const timeToMin = (time) => {
-    const [H, M] = time.split(":").map((n) => +n);
-    return H * 60 + M;
-  };
-
-  const minToTime = (min) => {
-    let H = Math.floor(min / 60);
-    let M = min - H * 60;
-    H = H < 10 ? "0" + H : H;
-    M = M < 10 ? "0" + M : M;
-    return H + ":" + M;
-  };
-
-  timetable = timetable.map((time) => timeToMin(time));
+  timetable = timetable.map((HM) => HMToMin(HM));
   timetable.sort((a, b) => a - b);
+  let busTime = 9 * 60;
 
-  for (let i = 1; i <= n; i++) {
-    let peoples = timetable.slice(0, m);
-    let ride = 0;
-    peoples.forEach((people) => {
-      people <= bus ? ride++ : null;
-    });
-    timetable = timetable.slice(ride);
-    //마지막 버스고 인원이 다 찼으면
-    if (n === i && m === ride) {
-      const lastTime = peoples[peoples.length - 1];
-      return minToTime(lastTime - 1);
-    } else if (n === i) {
-      return minToTime(bus);
+  for (let i = 0; i < n - 1; i++) {
+    let j = 0;
+    while (j < m) {
+      if (timetable[j] > busTime) break;
+      j++;
     }
-    bus += t;
+    timetable.splice(0, j);
+    busTime += t;
   }
 
-  return answer;
+  if (timetable.length === 0) return MinToHM(busTime);
+
+  let possible = 0;
+
+  while (possible < m) {
+    if (timetable[possible] <= busTime) possible++;
+    else break;
+  }
+
+  if (possible === m) return MinToHM(timetable[possible - 1] - 1);
+  else return MinToHM(busTime);
 }
 
-console.log(
-  solution(10, 60, 45, [
-    "23:59",
-    "23:59",
-    "23:59",
-    "23:59",
-    "23:59",
-    "23:59",
-    "23:59",
-    "23:59",
-    "23:59",
-    "23:59",
-    "23:59",
-    "23:59",
-  ])
-);
+console.log(solution(1, 1, 5, ["00:01", "00:01", "00:01", "00:01", "00:01"]));
