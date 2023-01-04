@@ -11,32 +11,33 @@ const MinToHM = (M) => {
   );
 };
 
+const canRide = (m, busTime, timetable) => {
+  let index = 0;
+  while (index < m) {
+    if (timetable[index] > busTime) return index;
+    index++;
+  }
+  return m;
+};
+
 function solution(n, t, m, timetable) {
   timetable = timetable.map((HM) => HMToMin(HM));
   timetable.sort((a, b) => a - b);
   let busTime = 9 * 60;
+  let lastBusTime = 9 * 60 + t * (n - 1);
 
   for (let i = 0; i < n - 1; i++) {
     let j = 0;
-    while (j < m) {
-      if (timetable[j] > busTime) break;
-      j++;
-    }
-    timetable.splice(0, j);
+    const ridenPeople = canRide(m, busTime, timetable);
+    timetable.splice(0, ridenPeople);
     busTime += t;
+    if (timetable.length === 0) return MinToHM(lastBusTime);
   }
 
-  if (timetable.length === 0) return MinToHM(busTime);
+  let lastBus = canRide(m, busTime, timetable);
 
-  let possible = 0;
-
-  while (possible < m) {
-    if (timetable[possible] <= busTime) possible++;
-    else break;
-  }
-
-  if (possible === m) return MinToHM(timetable[possible - 1] - 1);
-  else return MinToHM(busTime);
+  if (lastBus === m) return MinToHM(timetable[lastBus - 1] - 1);
+  else return MinToHM(lastBusTime);
 }
 
-console.log(solution(1, 1, 5, ["00:01", "00:01", "00:01", "00:01", "00:01"]));
+console.log(solution(2, 10, 2, ["09:10", "09:09", "08:00"]));
