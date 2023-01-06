@@ -1,68 +1,83 @@
-const getCombination = (arr, pick) => {
-  let result = [];
-  if (pick === 1) return arr.map((el) => [el]);
+const d = Array.from({ length: 1024 }, () =>
+  Array.from({ length: 1004 }, () => Infinity)
+);
 
-  arr.forEach((fixed, index) => {
-    const tmp = getCombination(arr.slice(index + 1), pick - 1);
-    tmp.map((el) => result.push([fixed, ...el]));
-  });
-  return result;
+const adj = Array.from({ length: 1004 }, () => []);
+const adjRev = Array.from({ length: 1004 }, () => []);
+const trapIdx = Array.from({ length: 1004 }, () => -1);
+
+const bitmask = (state, idx) => {
+  return (1 << trapIdx[idx]) & state;
 };
 
 function solution(n, start, end, roads, traps) {
-  //트랩이 10개 밖에 안되니, 조합으로 모든 종류의 그래프를 그리고 상황에 맞춰서 그래프 사용하자.
-  let trapObj = {};
-  for (let pick = 0; pick <= traps.length; pick++) {
-    let trapCombis = getCombination(traps, pick);
-    trapCombis.push([[]]);
-    trapCombis.forEach((el) => {
-      let key = el.join(",");
+  roads.forEach(([from, to, cost]) => {
+    adj[from].push([to, cost]);
+    adjRev[to].push([from, cost]);
+  });
 
-      let graph = {};
-
-      for (let i = 1; i <= n; i++) {
-        graph[i] = {};
-      }
-
-      roads.forEach(([from, to, cost]) => {
-        if (el.includes(from) ^ el.includes(to)) {
-          [from, to] = [to, from];
-        }
-
-        if (graph[from][to]) {
-          graph[from][to] > cost ? (graph[from][to] = cost) : null;
-        } else {
-          graph[from][to] = cost;
-        }
-      });
-      trapObj[key] = graph;
-    });
+  for (let i = 0; i < traps.length; i++) {
+    trapIdx[traps[i]] = i;
   }
-  traps = traps.map(String);
-  let trapStatus = new Set();
-  let queue = [[start, 0, trapStatus]];
-  let answer = Infinity;
+  d[start][0] = 0;
+  const queue = [[d[start][0], start, 0]];
+
+  let val, idx, state, nextState;
   while (queue.length) {
-    const [currentNode, currentCost, trapStatus] = queue.shift();
-    if (Number(currentNode) === end) {
-      answer = Math.min(currentCost, answer);
+    distanceArr = queue.map((el) => el[0]);
+
+    const smallIdx = distanceArr.indexOf(Math.min(...distanceArr));
+
+    [val, idx, state] = queue[smallIdx];
+
+    queue.splice(smallIdx, 1);
+    if (idx === end) return val;
+
+    if (d[idx][state] !== val) continue;
+
+    for (const [next, dist] of adj[idx]) {
+      rev = 0;
+      if (trapIdx[idx] !== -1 && bitmask(state, idx)) rev ^= 1;
+      if (trapIdx[next] !== -1 && bitmask(state, next)) rev ^= 1;
+
+      if (rev) continue;
+      nextState = state;
+      if (trapIdx[next] !== -1) nextState ^= 1 << trapIdx[next];
+
+      if (d[next][nextState] > dist + val) {
+        d[next][nextState] = dist + val;
+        queue.push([d[next][nextState], next, nextState]);
+      }
     }
 
-    if (currentCost >= answer) continue;
+    for (const [next, dist] of adjRev[idx]) {
+      rev = 0;
+      if (trapIdx[idx] !== -1 && bitmask(state, idx)) rev ^= 1;
+      if (trapIdx[next] !== -1 && bitmask(state, next)) rev ^= 1;
 
-    if (traps.includes(currentNode)) {
-      trapStatus.has(currentNode)
-        ? trapStatus.delete(currentNode)
-        : trapStatus.add(currentNode);
-    }
-    let key = [...trapStatus].sort((a, b) => a - b).join(",");
+      if (!rev) continue;
+      nextState = state;
+      if (trapIdx[next] !== -1) nextState ^= 1 << trapIdx[next];
 
-    if (trapObj[key][currentNode] === undefined) continue;
-
-    for (const [next, cost] of Object.entries(trapObj[key][currentNode])) {
-      queue.push([next, currentCost + cost, trapStatus]);
+      if (d[next][nextState] > dist + val) {
+        d[next][nextState] = dist + val;
+        queue.push([d[next][nextState], next, nextState]);
+      }
     }
   }
 
-  return answer;
+  return -1;
 }
+
+console.log(
+  solution(
+    3,
+    1,
+    3,
+    [
+      [1, 2, 2],
+      [3, 2, 3],
+    ],
+    [2]
+  )
+);
