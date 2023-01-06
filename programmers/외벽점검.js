@@ -1,52 +1,56 @@
-function solution(n, weak, dist) {
-  const visited = Array.from({ length: dist.length }, () => false);
+const getPermutation = (arr, pick) => {
+  if (pick === 1) return arr.map((el) => [el]);
+  const result = [];
 
-  const permutation = (target, n, tmp) => {
-    if (target === tmp.length) {
-      perArr.push([...tmp]);
-      return;
-    }
-    for (let i = 0; i < n; i++) {
-      if (visited[i]) continue;
-      visited[i] = true;
-      tmp.push(i);
-      permutation(target, n, tmp);
-      visited[i] = false;
-      tmp.pop();
-    }
-  };
-
-  let perArr = [];
-  for (let i = 1; i <= n; i++) {
-    permutation(i, dist.length, []);
-  }
-
-  let speadWeak = Array.from({ length: weak.length * 2 }, () => undefined);
-  weak.forEach((w, i) => {
-    speadWeak[i] = w;
-    speadWeak[i + weak.length] = w + n;
+  arr.forEach((fixed, index, origin) => {
+    const rest = [...origin.slice(0, index), ...origin.slice(index + 1)];
+    const tmp = getPermutation(rest, pick - 1);
+    tmp.forEach((p) => result.push([fixed, ...p]));
   });
+  return result;
+};
 
-  const roots = Array.from({ length: weak.length }, () => []);
-  for (let i = 0; i < weak.length; i++) {
-    roots[i] = speadWeak.slice(i, weak.length + i);
+function solution(n, weak, dist) {
+  let answer = Infinity;
+  let needVisitedNum = weak.length;
+
+  for (let i = 0; i < needVisitedNum; i++) {
+    // 회전형을 선형적으로
+    weak.push(n + weak[i]);
   }
 
-  for (let per of perArr) {
-    for (let root of roots) {
-      let worker = per.map((p) => dist[p]);
-      let answer = worker.length;
+  // 어떤 노동자를 어떤 순서로 투입할지에 대한 정보
+  const permutationObj = {};
+  for (let pick = 1; pick <= dist.length; pick++) {
+    permutationObj[pick] = getPermutation(
+      Array.from({ length: dist.length }, (_, i) => i),
+      pick
+    );
+  }
 
-      while (worker.length !== 0 && root.length !== 0) {
-        start = root[0] + worker.shift();
-
-        root = root.filter((r) => start < r);
+  for (let startIdx = 0; startIdx < n; startIdx++) {
+    // 시작하는 외벽
+    for (const people of Object.keys(permutationObj)) {
+      // 투입되는 노동자 수
+      if (people >= answer) break;
+      for (const workers of permutationObj[people]) {
+        // 투입되는 노동자 순열
+        let cnt = 0;
+        let copyI = startIdx;
+        for (const workerIdx of workers) {
+          const worker = dist[workerIdx];
+          const start = weak[copyI];
+          if (!start) continue;
+          while (worker >= weak[copyI] - start) {
+            copyI++;
+            cnt++;
+          }
+          if (cnt >= needVisitedNum) answer = Math.min(answer, people);
+        }
       }
-
-      if (!root.length) return answer;
     }
   }
-  return -1;
+  return answer === Infinity ? -1 : answer;
 }
 
-console.log(solution(12, [1, 5, 6, 10], [1, 2, 3, 4]));
+console.log(solution(12, [1, 5, 6, 10], [7]));
