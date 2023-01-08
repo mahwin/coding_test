@@ -1,83 +1,85 @@
-let allRemoved = 1;
-let allCard = {};
-let minCnt = Infinity;
-let dirs = [
-  [0, 1],
-  [0, -1],
-  [1, 0],
-  [-1, 0],
-];
-
 function solution(board, r, c) {
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 4; j++) {
-      const num = board[i][j];
+  let answer = Infinity;
+  let allCard = {};
+  let allRemoved = 1; // 제거할 카드를 확인하기 위함. (비트연산)
+  const dirs = [
+    [0, 1],
+    [1, 0],
+    [-1, 0],
+    [0, -1],
+  ];
+
+  const isValid = (r, c) => {
+    if (r < 0 || c < 0 || r > 3 || c > 3) return false;
+    else return true;
+  };
+
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 4; col++) {
+      let num = board[row][col];
       if (num) {
         allRemoved |= 1 << num;
-        allCard[num] = allCard[num]
-          ? [...allCard[num], [i, j, 0]] // row, col ,이동 횟수
-          : [[i, j, 0]];
+        if (Object.keys(allCard).includes(num + "")) {
+          allCard[num].push([row, col]);
+        } else {
+          allCard[num] = [[row, col]];
+        }
       }
     }
   }
+
   const bfs = (removed, src, dst) => {
+    const queue = [[...src, 0]];
     const visited = Array.from({ length: 4 }, () =>
       Array.from({ length: 4 }, () => false)
     );
-    const queue = [src];
+    visited[src[0]][src[1]] = true;
+
     while (queue.length) {
-      curr = queue.shift();
-      if (curr[0] === dst[0] && curr[1] === dst[1]) return curr[2];
+      const [r, c, cnt] = queue.shift();
 
+      if (r === dst[0] && c === dst[1]) return cnt;
       for (const dir of dirs) {
-        let nr = curr[0] + dir[0];
-        let nc = curr[1] + dir[1];
-
-        if (nr < 0 || nr > 3 || nc < 0 || nc > 3) continue;
+        let nr = r + dir[0];
+        let nc = c + dir[1];
+        if (!isValid(nr, nc)) continue;
         if (!visited[nr][nc]) {
           visited[nr][nc] = true;
-          queue.push([nr, nc, curr[2] + 1]);
+          queue.push([nr, nc, cnt + 1]);
         }
         for (j = 0; j < 2; j++) {
-          if (removed & (1 << board[nr][nc] === 0)) break;
-          if (
-            nr + dir[0] < 0 ||
-            nr + dir[0] > 3 ||
-            nc + dir[1] < 0 ||
-            nc + dir[1] > 3
-          )
-            break;
-          nr += dir[0];
-          nc += dir[1];
+          if ((removed & (1 << board[nr][nc])) === 0) break;
+
+          if (isValid(nr + dir[0], nc + dir[1])) {
+            nr += dir[0];
+            nc += dir[1];
+          } else break;
         }
-        if (!visited[nr][nc]) {
-          visited[nr][nc] = true;
-          queue.push([nr, nc, curr[2] + 1]);
-        }
+
+        if (!visited[nr][nc]) queue.push([nr, nc, cnt + 1]);
       }
     }
+    return Infinity;
   };
-
-  const permutate = (cnt, removed, src) => {
+  const permutation = (cnt, removed, src) => {
     if (removed === allRemoved) {
-      minCnt = Math.min(minCnt, cnt);
+      answer = Math.min(cnt, answer);
       return;
     }
 
     for (const [num, card] of Object.entries(allCard)) {
       if (removed & (1 << num)) continue;
 
-      one = bfs(removed, src, card[0]) + bfs(removed, card[0], card[1]) + 2;
-      two = bfs(removed, src, card[1]) + bfs(removed, card[1], card[0]) + 2;
-      permutate(cnt + one, removed | (1 << num), card[1]);
-      permutate(cnt + two, removed | (1 << num), card[0]);
+      let one = bfs(removed, src, card[0]) + bfs(removed, card[0], card[1]) + 2;
+      let two = bfs(removed, src, card[1]) + bfs(removed, card[1], card[0]) + 2;
+      permutation(cnt + one, removed | (1 << num), card[1]);
+      permutation(cnt + two, removed | (1 << num), card[0]);
     }
   };
 
-  permutate(0, 1, [r, c, 0]);
+  permutation(0, 1, [r, c, 0]); // 토탈 조작횟수, 제거된 카드 확인 (비트 연산), 시작 지점
 
-  console.log(minCnt);
-  return minCnt;
+  return answer;
 }
 
 solution(
