@@ -1,40 +1,31 @@
-function solution(cacheSize, cities) {
-  let answer = 0;
-  let chache = [];
+const arrDeleteTarget = (arr, target) => {
+  arr.splice(arr.indexOf(target), 1);
+  return arr;
+};
 
+function solution(cacheSize, cities) {
   if (cacheSize === 0) return cities.length * 5;
+  cities = cities.map((el) => el.toLowerCase());
+
+  let cacheArr = [];
+  let time = 0;
   for (let i = 0; i < cities.length; i++) {
-    const city = cities[i].toLowerCase();
-    const isIn = chache.includes(city);
-    answer += isIn ? 1 : 5;
-    if (isIn) {
-      let cityIndex = chache.indexOf(city);
-      chache = [
-        ...chache.slice(0, cityIndex),
-        ...chache.slice(cityIndex + 1),
-        city,
-      ];
+    const city = cities[i];
+    if (cacheArr.includes(city)) {
+      cacheArr = arrDeleteTarget(cacheArr, city);
+      cacheArr.push(city);
+      time += 1;
     } else {
-      if (chache.length === cacheSize) {
-        chache = [...chache.slice(1), city];
-      } else chache.push(city);
+      if (cacheArr.length < cacheSize) {
+        cacheArr.push(city);
+      } else {
+        cacheArr = [...cacheArr.slice(1), city];
+      }
+      time += 5;
     }
   }
 
-  return answer;
+  return time;
 }
 
-solution(5, [
-  "Jeju",
-  "Pangyo",
-  "Seoul",
-  "NewYork",
-  "LA",
-  "SanFrancisco",
-  "Seoul",
-  "Rome",
-  "Paris",
-  "Jeju",
-  "NewYork",
-  "Rome",
-]);
+solution(0, ["LA", "LA"]);
