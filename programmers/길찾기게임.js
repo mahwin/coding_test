@@ -1,8 +1,8 @@
 class Node {
   constructor(x, y, index) {
-    this.index = index;
     this.x = x;
     this.y = y;
+    this.index = index;
     this.left = null;
     this.right = null;
   }
@@ -12,7 +12,8 @@ class BinaryTree {
   constructor(root = null) {
     this.root = root;
   }
-  add(node) {
+
+  push(node) {
     if (this.root === null) {
       this.root = node;
       return;
@@ -22,65 +23,54 @@ class BinaryTree {
         this.root.left = new BinaryTree(node);
         return;
       } else {
-        this.root.left.add(node);
+        this.root.left.push(node);
       }
     } else {
       if (this.root.right === null) {
         this.root.right = new BinaryTree(node);
         return;
       } else {
-        this.root.right.add(node);
+        this.root.right.push(node);
       }
     }
   }
   preorder(tmp) {
     tmp.push(this.root.index);
-    if (this.root.left !== null) this.root.left.preorder(tmp);
-    if (this.root.right !== null) this.root.right.preorder(tmp);
+    if (this.root.left) this.root.left.preorder(tmp);
+    if (this.root.right) this.root.right.preorder(tmp);
   }
 
   postorder(tmp) {
-    if (this.root.left !== null) this.root.left.postorder(tmp);
-    if (this.root.right !== null) this.root.right.postorder(tmp);
+    if (this.root.left) this.root.left.postorder(tmp);
+    if (this.root.right) this.root.right.postorder(tmp);
     tmp.push(this.root.index);
   }
 }
 
 function solution(nodeinfo) {
+  nodeinfo = nodeinfo.map((el, index) => [...el, index + 1]); //인덱스 추가
+
+  nodeinfo.sort((a, b) => b[1] - a[1]); // y값이 클 수록 루트 노드에 근접
+
   const binaryTree = new BinaryTree();
-  nodeinfo = nodeinfo.map(([x, y], index) => {
-    return [index + 1, x, y];
-  });
-  nodeinfo.sort((a, b) => a[2] - b[2]);
-  let maxY = nodeinfo[nodeinfo.length - 1][2];
-
-  while (nodeinfo.length) {
-    let sameHeight = nodeinfo.filter((el) => el[2] === maxY);
-
-    sameHeight.forEach(([index, x, y]) => {
-      let node = new Node(x, y, index);
-      binaryTree.add(node);
-    });
-    nodeinfo = nodeinfo.filter((el) => el[2] !== maxY);
-    maxY--;
+  for (const [x, y, index] of nodeinfo) {
+    const node = new Node(x, y, index);
+    binaryTree.push(node);
   }
-
-  let [arr1, arr2] = [[], []];
-  binaryTree.postorder(arr1);
-  binaryTree.preorder(arr2);
-  return [arr2, arr1];
+  let [pre, post] = [[], []];
+  binaryTree.preorder(pre);
+  binaryTree.postorder(post);
+  return [pre, post];
 }
 
-console.log(
-  solution([
-    [5, 3],
-    [11, 5],
-    [13, 3],
-    [3, 5],
-    [6, 1],
-    [1, 3],
-    [8, 6],
-    [7, 2],
-    [2, 2],
-  ])
-);
+solution([
+  [5, 3],
+  [11, 5],
+  [13, 3],
+  [3, 5],
+  [6, 1],
+  [1, 3],
+  [8, 6],
+  [7, 2],
+  [2, 2],
+]);
