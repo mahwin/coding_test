@@ -1,20 +1,57 @@
-const gcd = (n1, n2) => {
-  let remainder = n1 % n2;
-  return n2 === 0 ? n1 : gcd(n2, remainder);
+const dividers = (num) => {
+  let divi = [];
+  for (let i = 1; i <= Math.ceil(Math.sqrt(num)); i++) {
+    if (num % i === 0) {
+      divi.push(i);
+      divi.push(num / i);
+    }
+  }
+  return divi;
 };
 
-function solution(arrayA, arrayB) {
-  var answer = 0;
-  let [gcdA, gcdB] = [arrayA[0], arrayB[0]];
-  for (let i = 1; i < arrayA.length; i++) {
-    gcdA = gcd(gcdA, arrayA[i]);
-    gcdB = gcd(gcdB, arrayB[i]);
+const CD = (arr, divis) => {
+  let commons = [];
+  for (let d of divis) {
+    let flag = true;
+    for (let num of arr) {
+      if (num % d !== 0) flag = false;
+    }
+    if (flag) commons.push(d);
   }
-  if (gcdA === 1) gcdA = 0;
-  if (gcdB === 1) gcdB = 0;
+  return commons;
+};
 
-  if (arrayA.every((v) => v % gcdB !== 0)) answer = Math.max(answer, gcdB);
-  if (arrayB.every((v) => v % gcdA !== 0)) answer = Math.max(answer, gcdA);
+const NCD = (arr, divis) => {
+  let max = 0;
+  for (let d of divis) {
+    let flag = true;
+    for (let num of arr) {
+      if (num % d === 0) flag = false;
+    }
+    if (flag) {
+      max = Math.max(max, d);
+    }
+  }
+  return max;
+};
 
-  return answer;
+let findMax = (arr) => {
+  let max = 0;
+  for (let num of arr) {
+    if (max < num) max = num;
+  }
+  return max;
+};
+
+function solution1(arrayA, arrayB) {
+  const maxANum = findMax(arrayA);
+  const maxBNum = findMax(arrayB);
+
+  const divisA = dividers(maxANum);
+  const divisB = dividers(maxBNum);
+  const commonsA = CD(arrayA, divisA);
+  const commonsB = CD(arrayB, divisB);
+  const a = NCD(arrayA, commonsB);
+  const b = NCD(arrayB, commonsA);
+  return a > b ? a : b;
 }
