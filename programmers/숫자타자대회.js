@@ -1,64 +1,88 @@
-function solution(numbers) {
-  dist = distance();
+const isValid = (x, y) => {
+  if (y < 0 || y > 4 || x < 0 || x > 3) return false;
+  else return true;
+};
 
-  const map = new Map([["46", 0]]);
+const bfs = (pos, target) => {
+  let queue = [
+    [...pos[0], 0, 1], //현 위치, 시행횟수, right of left
+    [...pos[1], 0, 0],
+  ];
+
+  let dirs = [
+    [1, 0],
+    [0, 1],
+    [-1, 0],
+    [0, -1],
+  ];
+  let diagonals = [
+    [1, -1],
+    [1, 1],
+    [-1, 1],
+    [-1, -1],
+  ];
+
+  let cntBoard = Array.from({ length: 4 }, (_, i) =>
+    Array.from({ length: 3 }, (_, j) => Infinity)
+  );
+
+  while (queue.length) {
+    let [x, y, cnt, isLeft] = queue.shift();
+
+    if (target[0] === x && target[1] === y) {
+      if (cnt === 0) return [1, isLeft];
+      else return [cnt, isLeft];
+    }
+
+    for (let dir of dirs) {
+      let nx = x + dir[0];
+      let ny = y + dir[1];
+      if (isValid(nx, ny) && cntBoard[nx][ny] > cnt + 2) {
+        cntBoard[nx][ny] = cnt + 2;
+        queue.push([nx, ny, cnt + 2, isLeft]);
+      }
+    }
+    for (let dia of diagonals) {
+      let nx = x + dia[0];
+      let ny = y + dia[1];
+      if (isValid(nx, ny) && cntBoard[nx][ny] > cnt + 3) {
+        cntBoard[nx][ny] = cnt + 3;
+        queue.push([nx, ny, cnt + 3, isLeft]);
+      }
+    }
+  }
+};
+
+const phoneNumToPos = () => {
+  let phone = {};
+  for (let i = 1; i < 10; i++) {
+    let x = Math.floor((i - 1) / 3);
+    let y = (i - 1) % 3;
+    phone[i] = [x, y];
+  }
+  phone["0"] = [3, 1];
+  return phone;
+};
+
+function solution(numbers) {
+  let phoone = phoneNumToPos();
+
+  let pos = [
+    [1, 0],
+    [1, 2],
+  ];
+  let total = 0;
 
   for (let i = 0; i < numbers.length; i++) {
-    let tmp = new Map(map);
     let num = numbers[i];
+    const target = phoone[num];
 
-    map.clear();
-
-    for (let [key, val] of tmp) {
-      let [left, right] = key.split("");
-
-      if (map.has(left + num) || map.has(num + left)) {
-        let rightKey = map.has(left + num) ? left + num : num + left;
-
-        map.set(rightKey, Math.min(map.get(rightKey), val + dist[right][num]));
-      } else {
-        if (left != num) map.set(left + "" + num, val + dist[right][num]);
-      }
-
-      if (map.has(num + right) || map.has(right + num)) {
-        let leftKey = map.has(num + right) ? num + right : right + num;
-        map.set(leftKey, Math.min(leftKey, val + dist[left][num]));
-      } else {
-        if (right != num) map.set(num + "" + right, val + dist[left][num]);
-      }
-    }
+    [cnt, isLeft] = bfs(pos, target);
+    total += cnt;
+    isLeft ? (pos[0] = target) : (pos[1] = target);
   }
 
-  return [...map.entries()].reduce((pv, cv) => (pv[1] < cv[1] ? pv : cv))[1];
+  return total;
 }
 
-function distance() {
-  const w = Array.from({ length: 10 }, () => Array(10).fill(0));
-
-  for (let i = 0; i < 10; i++) {
-    for (let j = 0; j < 10; j++) {
-      let x = Math.abs(position(i)[0] - position(j)[0]);
-      let y = Math.abs(position(i)[1] - position(j)[1]);
-      let min = Math.min(x, y);
-      let max = Math.max(x, y);
-      w[j][i] = i === j ? 1 : min * 3 + Math.abs(max - min) * 2;
-    }
-  }
-  return w;
-}
-
-function position(num) {
-  const pad = [
-    ["1", "2", "3"],
-    ["4", "5", "6"],
-    ["7", "8", "9"],
-    ["*", "0", "#"],
-  ];
-  let p = [];
-  pad.find((arr, i) => {
-    if (arr.includes(num + "")) {
-      p = [i, arr.indexOf(num + "")];
-    }
-  });
-  return p;
-}
+console.log(solution("5123"));
