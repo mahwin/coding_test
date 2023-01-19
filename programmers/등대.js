@@ -1,34 +1,48 @@
+const dfs = (prev, curr, graph) => {
+  if (!graph[curr]) return [prev, curr];
+
+  for (let next of graph[curr]) {
+    return dfs(curr, next, graph);
+  }
+};
+
 function solution(n, lighthouse) {
-  const memo = new Array(n + 1).fill(false);
-  let result = 0;
-
+  let answer = 0;
+  let preNodes = new Set();
   while (lighthouse.length) {
-    const map = new Array(n + 1).fill().map((_) => []);
-
-    for (const el of lighthouse) {
-      const [a, b] = el;
-
-      map[a].push(b);
-      map[b].push(a);
-    }
-    map
-      .filter((el) => el.length === 1)
-      .forEach((el) => {
-        const [target] = el;
-        if (!memo[target]) {
-          memo[target] = true;
-          if (map[target].length !== 1) result += 1;
-          else result += 0.5;
-        }
-      });
-
-    // 간선이 1개인 섬 모두 제거
-    lighthouse = lighthouse.filter((el) => {
-      const [a, b] = el;
-
-      return !memo[a] && !memo[b];
+    let lastNodes = new Set();
+    let graph = {};
+    lighthouse.forEach(([from, to]) => {
+      graph[from] = graph[from] ? [...graph[from], to] : [to];
     });
+
+    for (let node = 1; node <= n; node++) {
+      if (!graph[node]) continue;
+      for (let next of graph[node]) {
+        let [leaf, curr] = dfs(node, next, graph);
+        lastNodes.add(leaf);
+        preNodes.add(curr);
+      }
+    }
+
+    lighthouse = lighthouse.filter(
+      ([from, to]) => !lastNodes.has(from) && !lastNodes.has(to)
+    );
   }
 
-  return result;
+  return preNodes.size;
 }
+
+console.log(
+  solution(10, [
+    [4, 1],
+    [5, 1],
+    [5, 6],
+    [7, 6],
+    [1, 2],
+    [1, 3],
+    [6, 8],
+    [2, 9],
+    [9, 10],
+  ])
+);
