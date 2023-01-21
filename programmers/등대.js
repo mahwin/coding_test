@@ -1,36 +1,35 @@
-const dfs = (prev, curr, graph) => {
-  if (!graph[curr]) return [prev, curr];
-
-  for (let next of graph[curr]) {
-    return dfs(curr, next, graph);
-  }
-};
-
 function solution(n, lighthouse) {
-  let answer = 0;
-  let preNodes = new Set();
+  const visited = new Array(n + 1).fill(false);
+  let result = 0;
+
   while (lighthouse.length) {
-    let lastNodes = new Set();
-    let graph = {};
+    const graph = Array.from({ length: n + 1 }, () => []);
+
     lighthouse.forEach(([from, to]) => {
-      graph[from] = graph[from] ? [...graph[from], to] : [to];
+      graph[from].push(to);
+      graph[to].push(from);
     });
 
-    for (let node = 1; node <= n; node++) {
-      if (!graph[node]) continue;
-      for (let next of graph[node]) {
-        let [leaf, curr] = dfs(node, next, graph);
-        lastNodes.add(leaf);
-        preNodes.add(curr);
-      }
-    }
-
-    lighthouse = lighthouse.filter(
-      ([from, to]) => !lastNodes.has(from) && !lastNodes.has(to)
-    );
+    graph
+      .filter((el) => el.length === 1)
+      .forEach((el) => {
+        const [node] = el;
+        if (!visited[node]) {
+          visited[node] = true;
+          if (graph[node].length !== 1) {
+            result += 1;
+          } else {
+            result += 0.5;
+            // 0 - 0 의 경우 두번 카운팅 되기 떄문에 0.5
+          }
+        }
+      });
+    lighthouse = lighthouse.filter(([from, to]) => {
+      return !visited[from] && !visited[to];
+    });
   }
 
-  return preNodes.size;
+  return result;
 }
 
 console.log(
