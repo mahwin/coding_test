@@ -1,31 +1,44 @@
-const find110 = (string) => {
-  const idxArr = [];
-  for (let i = 0; i < string.length; i++) {
-    if ("110" === string.slice(i, i + 3)) {
-      idxArr.push(i);
+const delete110 = (string) => {
+  let cnt = 0;
+  if (string.length <= 2) return [string, 0];
+
+  const stack = [string[0], string[1]];
+  let len;
+  for (let i = 2; i < string.length; i++) {
+    stack.push(string[i]);
+    len = stack.length;
+    if (stack.slice(len - 3, len).join("") === "110") {
+      stack.pop();
+      stack.pop();
+      stack.pop();
+      cnt++;
     }
   }
-  return idxArr;
+  return [stack.join(""), cnt];
+};
+
+const findZero = (string) => {
+  for (let idx = string.length - 1; idx >= 0; idx--) {
+    if (string[idx] === "0") return idx + 1;
+  }
+  return 0;
 };
 
 function solution(s) {
   let answer = [];
   for (let i = 0; i < s.length; i++) {
-    const string = s[i];
-    const idxArr = find110(string);
-    let max = string;
-    for (const start of idxArr) {
-      let delete110 = string.slice(0, start) + string.slice(start + 3);
-      let curMax =
-        "110" + delete110 > delete110 + "110"
-          ? "110" + delete110
-          : delete110 + "110";
-      max = Math.max(curMax, max);
-    }
-    answer.push(max);
-  }
+    let string = s[i];
+    [string, cnt] = delete110(string);
 
-  return answer.map(String);
+    let lastZeroIndex = findZero(string);
+
+    let fore = string.slice(0, lastZeroIndex);
+    let back = string.slice(lastZeroIndex);
+    string = fore + "110".repeat(cnt) + back;
+    answer.push(string);
+  }
+  return answer;
 }
 
 console.log(solution(["1110", "100111100", "0111111010"]));
+console.log(["1101", "100110110", "0110110111"]);
