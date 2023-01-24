@@ -1,37 +1,34 @@
 function solution(a, b, g, s, w, t) {
-  let answer = 10e5 * 4 * 10e9;
+  let len = g.length;
+  let left = 0;
+  let right = 10e5 * 4 * 10e9;
 
-  let start = 0;
-  let end = 10e5 * 4 * 10e9;
+  let maxGold, maxSilver, sum, mid;
 
-  while (start <= end) {
-    let mid = Math.floor((start + end) / 2);
-    let gold = 0;
-    let silver = 0;
-    let add = 0;
+  while (left < right) {
+    [maxGold, maxSilver, sum] = [0, 0, 0];
+    mid = Math.floor((left + right) / 2);
 
-    for (let i = 0; i < s.length; i++) {
-      let now_g = g[i];
-      let now_s = s[i];
-      let now_w = w[i];
-      let now_t = t[i];
+    for (let i = 0; i < len; i++) {
+      let cnt = Math.floor(mid / (t[i] * 2));
+      if (mid % (t[i] * 2) >= t[i]) cnt++;
 
-      let move_cnt = Math.floor(mid / (now_t * 2));
-      if (mid % (now_t * 2) >= t[i]) move_cnt++;
-
-      gold += now_g < move_cnt * now_w ? now_g : move_cnt * now_w;
-      silver += now_s < move_cnt * now_w ? now_s : move_cnt * now_w;
-      add +=
-        now_g + now_s < move_cnt * now_w ? now_g + now_s : move_cnt * now_w;
+      let maxWeight = cnt * w[i];
+      maxGold += g[i] < maxWeight ? g[i] : maxWeight;
+      maxSilver += s[i] < maxWeight ? s[i] : maxWeight;
+      sum += g[i] + s[i] > maxWeight ? maxWeight : g[i] + s[i];
     }
 
-    if (gold >= a && silver >= b && add >= a + b) {
-      end = mid - 1;
-      answer = Math.min(mid, answer);
+    if (maxGold >= a && maxSilver >= b && sum >= a + b) {
+      right = mid;
     } else {
-      start = mid + 1;
+      left = mid + 1;
     }
   }
-
-  return answer;
+  return left;
 }
+
+// console.log(solution(10, 10, [100], [100], [7], [10]));
+console.log(
+  solution(90, 500, [70, 70, 0], [0, 0, 500], [100, 100, 2], [4, 8, 1])
+);
