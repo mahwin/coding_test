@@ -1,4 +1,4 @@
-let input = `5 2 6
+let input = `5 2 200000
 2 3 2 3 2
 2 3 2 3 2
 2 3 2 3 2
@@ -7,7 +7,7 @@ let input = `5 2 6
 2 1 3
 3 2 3`.split("\n");
 
-// let fs = require("fs");
+let fs = require("fs");
 // let input = fs.readFileSync("/dev/stdin").toString().split("\n");
 let [N, M, K] = input.shift().split(" ").map(Number);
 
@@ -41,16 +41,36 @@ const isValid = (row, col) => {
   return true;
 };
 
-const treeBaby = (row, col) => {
+const treeBaby = (babyCnt) => {
   let dx = [-1, -1, -1, 0, 0, 1, 1, 1];
   let dy = [-1, 0, 1, -1, 1, -1, 0, 1];
-  for (let i = 0; i < 8; i++) {
-    let nr = row + dx[i];
-    let nc = col + dy[i];
-    if (isValid(nr, nc)) {
-      treeBoard[nr][nc] =
-        treeBoard[nr][nc] === null ? [1] : [1, ...treeBoard[nr][nc]];
+  let babyObj = {};
+  let keys = Object.keys(babyCnt);
+  for (let key of keys) {
+    let len = babyCnt[key];
+    let [row, col] = key.split(",").map(Number);
+    for (let i = 0; i < 8; i++) {
+      let nr = row + dx[i];
+      let nc = col + dy[i];
+      if (isValid(nr, nc)) {
+        let key = [nr, nc].join(",");
+
+        if (babyObj[key]) {
+          babyObj[key].push(...Array.from({ length: len }, () => 1));
+        } else {
+          babyObj[key] = Array.from({ length: len }, () => 1);
+        }
+      }
     }
+  }
+
+  keys = Object.keys(babyObj);
+  for (let key of keys) {
+    let [row, col] = key.split(",");
+
+    treeBoard[row][col] = treeBoard[row][col]
+      ? [...babyObj[key], ...treeBoard[row][col]]
+      : [...babyObj[key]];
   }
 };
 const addEnergy = () => {
@@ -72,56 +92,47 @@ const cntTree = () => {
   }
   return cnt;
 };
+let babyCnt = {};
 
 while (K--) {
-  let deadTrees = [];
   for (let row = 0; row < N; row++) {
     for (let col = 0; col < colLength; col++) {
       let trees = treeBoard[row][col];
-      let newTrees = [];
       let eat = 0;
+      let deadEnergy = 0;
       let index = -1;
       //봄
       if (trees) {
         for (let i = 0; i < trees.length; i++) {
           if (energyBoard[row][col] >= eat + trees[i]) {
             eat += trees[i];
+            treeBoard[row][col][i]++;
             index = i;
-          } else break;
-        }
-        energyBoard[row][col] -= eat;
-        if (index === trees.length - 1) {
-          treeBoard[row][col] = treeBoard[row][col].map((el) => el + 1);
-        } else deadTrees.push([row, col, index + 1]);
-      }
-    }
-  }
-
-  //여름
-  deadTrees.forEach(([row, col, index]) => {
-    let trees = treeBoard[row][col];
-    let aliveTree = trees.splice(0, index);
-    treeBoard[row][col] = aliveTree.map((el) => el + 1);
-
-    energyBoard[row][col] += +trees.map((el) => (el / 2) >> 0);
-  });
-  //가을
-  for (let row = 0; row < N; row++) {
-    for (let col = 0; col < colLength; col++) {
-      let trees = treeBoard[row][col];
-
-      if (trees) {
-        for (let i = 0; i < trees.length; i++) {
-          if (trees[i] % 5 === 0) {
-            treeBaby(row, col);
+            if (treeBoard[row][col][i] % 5 === 0) {
+              let key = [row, col].join(",");
+              babyCnt[key] = babyCnt[key] ? babyCnt[key] + 1 : 1;
+            }
+          } else {
+            deadEnergy += Math.floor(trees[i] / 2);
           }
         }
+        if (index < trees.length - 1) {
+          treeBoard[row][col] = [...treeBoard[row][col].slice(0, index + 1)];
+        }
+
+        //여름
+        energyBoard[row][col] += deadEnergy - eat;
       }
     }
   }
 
+  //가을
+  treeBaby(babyCnt);
+  babyCnt = {};
+
   //겨울 영양분 주입
-  if (K !== 0) addEnergy();
+  if (K === 0) break;
+  addEnergy();
 }
 
 console.log(cntTree());
