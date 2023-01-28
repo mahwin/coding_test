@@ -11,12 +11,6 @@ const colLength = input[0].split(" ").length;
 const housePos = [];
 const chickenPos = [];
 
-const aliveBoard = Array.from({ length: N }, () =>
-  Array.from({ length: colLength }, () => false)
-);
-const chickenBoard = Array.from({ length: N }, () =>
-  Array.from({ length: colLength }, () => 0)
-);
 for (let i = 0; i < N; i++) {
   let curRow = input[i].split(" ").map(Number);
   for (let j = 0; j < colLength; j++) {
@@ -24,41 +18,17 @@ for (let i = 0; i < N; i++) {
 
     if (!cur) continue;
     if (cur === 1) housePos.push([i, j]);
-    else {
-      chickenPos.push([i, j]);
-      chickenBoard[i][j] = 1;
-    }
+    else chickenPos.push([i, j]);
   }
 }
 
-const dirs = [
-  [0, 1],
-  [1, 0],
-  [-1, 0],
-  [0, -1],
-];
-
-const isValid = (r, c) => {
-  if (r < 0 || r >= N || c < 0 || c >= colLength) return false;
-  return true;
-};
-
-const findChicken = (row, col, aliveBoard) => {
-  let queue = [[row, col, 0]];
-
-  while (queue.length) {
-    const [r, c, cnt] = queue.shift();
-
-    if (chickenBoard[r][c] && aliveBoard[r][c]) return cnt;
-
-    for (const dir of dirs) {
-      const nr = r + dir[0];
-      const nc = c + dir[1];
-      if (isValid(nr, nc)) {
-        queue.push([nr, nc, cnt + 1]);
-      }
-    }
+const findChicken = (house, chicken) => {
+  let min = Infinity;
+  let [hr, hc] = house;
+  for (chi of chicken) {
+    min = Math.min(Math.abs(chi[0] - hr) + Math.abs(chi[1] - hc), min);
   }
+  return min;
 };
 
 const getCombination = (arr, pick) => {
@@ -79,19 +49,11 @@ let min = Infinity;
 for (const com of combis) {
   let tmp = 0;
   for (const pos of housePos) {
-    com.forEach((el) => {
-      let [i, j] = chickenPos[el];
-      aliveBoard[i][j] = true;
-    });
-    tmp += findChicken(pos[0], pos[1], aliveBoard);
+    let chicken = com.map((el) => chickenPos[el]);
+    tmp += findChicken(pos, chicken);
   }
 
   min = Math.min(tmp, min);
-
-  com.forEach((el) => {
-    let [i, j] = chickenPos[el];
-    aliveBoard[i][j] = false;
-  });
 }
 
 console.log(min);
