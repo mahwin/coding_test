@@ -1,48 +1,48 @@
-from heapq import heappush,heappop
-input = '''3
-9
-1 2 3 4 5 6 7 8 9
-9
-9 8 7 6 5 4 3 2 1
-23
-23 41 13 22 -3 24 -31 -11 -8 -7 3 5 103 211 -311 -45 -67 -73 -81 -99 -33 24 56'''
+from sys import stdin
+import math
+import heapq 
 
-def solution(data):
+def solution (data):
     minHeap = []
     maxHeap = []
     middle = data[0]
-    result = [middle]
+    result = [data[0]]
     
-
-    for idx,val in enumerate(data[1:],1):
-        if middle < val:
-          heappush(minHeap,val) 
+    for i,current in enumerate(data[1:],1):
+        if current > middle:
+            heapq.heappush(minHeap,current)
+            
         else:
-          heappush(maxHeap,(-val,val))
+            heapq.heappush(maxHeap, (-current,current))
 
-        if idx%2 == 0:
-            
-            if len(maxHeap) > len(minHeap):
-                heappush(minHeap, middle)
-                middle = heappop(maxHeap)[1]
-                
-            
-            elif len(maxHeap) < len(minHeap):
-                heappush(maxHeap, (-middle,middle))
-                middle = heappop(minHeap)
-                
+        if i % 2 ==0:
+            if len(minHeap) > len(maxHeap):
+                  heapq.heappush(maxHeap, (-middle,middle))
+                  middle = heapq.heappop(minHeap)
+            elif len(maxHeap) > len (minHeap):
+                  heapq.heappush(minHeap,middle)
+                  middle = heapq.heappop(maxHeap)[1]
+
             result.append(middle)
-    print(len(result))
-    length = round(len(result) / 10)
-    for i in range(0,length+1):
-      print(' '.join(map(str,result[i*10:i*10+10])))
-
-
+    print(len(result)) #길이
+    cnt = math.ceil(len(result)/10)
+    for j in range(cnt):
+      print(' '.join(map(str,result[j*10:j*10+10])))
+      
     
 
+t = int(stdin.readline().rstrip())
 
-input = input.split('\n')
-trials = round((len(input)-1)/2)
-for trial in range(1,trials+1):
-  data = list(map(int,input[trial*2].split()))
-  solution(data)
+for i in range(t):
+    m = int(stdin.readline().rstrip())
+    data = []
+    if(m%10==0):
+        for _ in range(m/10):
+            data.extend(list(map(int,stdin.readline().rstrip().split(' '))))
+    else :
+        
+        for _ in range(m//10 +1):
+            data.extend(list(map(int,stdin.readline().rstrip().split(' '))))
+    solution(data)
+
+
