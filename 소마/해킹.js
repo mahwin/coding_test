@@ -1,7 +1,8 @@
 let input = `1
-3 2 1
+4 3 1
 2 1 4
-3 2 4`.split("\n");
+3 2 4
+4 3 4`.split("\n");
 
 let tests = Number(input.shift());
 
@@ -15,33 +16,38 @@ for (let test = 0; test < tests; test++) {
     graph[b].push([a, s]);
   }
 
-  let queue = graph[start];
+  let queue = [...graph[start]];
+
   while (queue.length) {
-    let disInfo = queue.map((el) => el[1]);
-    let smallIdx = disInfo.indexOf(Math.min(...disInfo));
-    let [node, dis] = queue[smallIdx];
+    const disArr = queue.map((el) => el[1]);
+    const smallIdx = disArr.indexOf(Math.min(...disArr));
+    console.log(queue, smallIdx);
+    const [node, dis] = queue[smallIdx];
     queue.splice(smallIdx, 1);
+
     if (d[node] < dis) continue;
     d[node] = dis;
 
-    for (let j = 0; j < graph[node].length; j++) {
-      const nextNode = graph[node][j][0];
-      const nextDist = graph[node][j][1];
-      const newDist = nextDist + dis;
-      if (d[nextNode] > newDist) {
-        d[nextNode] = newDist;
-        queue.push([nextNode, newDist]);
+    for (let i = 0; i < graph[node].length; i++) {
+      const nextNode = graph[node][i][0];
+      const nextDis = graph[node][i][1];
+      const sumDis = nextDis + dis;
+      if (d[nextNode] > sumDis) {
+        d[nextNode] = sumDis;
+        queue.push([nextNode, sumDis]);
       }
     }
   }
+
   let cnt = 0;
   let max = 0;
-  console.log(d);
   for (let i = 1; i < com + 1; i++) {
     if (d[i] !== Infinity) {
       cnt++;
       max = Math.max(d[i], max);
     }
   }
+  console.log(d);
+
   console.log(`${cnt} ${max}`);
 }
