@@ -1,11 +1,11 @@
 let fs = require("fs");
-// let input = fs.readFileSync("/dev/stdin").toString().split("\n");
-let input = `3
-2
-0 1 0
-1 0 1
-0 1 0
-1 1`.split("\n");
+let input = fs.readFileSync("/dev/stdin").toString().trim().split("\n");
+// let input = `3
+// 2
+// 0 1 0
+// 1 0 1
+// 0 1 0
+// 1 1`.split("\n");
 
 const getP = (node) => {
   if (node === p[node]) return node;
@@ -39,6 +39,5 @@ for (let node of targets) {
   parentSet.add(getP(node));
 }
 
-console.log(p);
 if (parentSet.size === 1) console.log("YES");
 else console.log("NO");
