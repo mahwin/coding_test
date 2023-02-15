@@ -1,26 +1,44 @@
-let input = `2
-0 0 10 10
-2 2 6 6`.split("\n");
-const N = Number(input[0]);
+let input = `8
+1 1 0 0 0 0 1 1
+1 1 0 0 0 0 1 1
+0 0 0 0 1 1 0 0
+0 0 0 0 1 1 0 0
+1 0 0 0 1 1 1 1
+0 1 0 0 1 1 1 1
+0 0 1 1 1 1 1 1
+0 0 1 1 1 1 1 1`.split("\n");
+let [N, ...board] = input;
+board = board.map((el) => el.split(" ").map(Number));
 
-const board = Array.from({ length: 1001 }, () =>
-  Array.from({ length: 1001 }, () => 0)
-);
-
-let result = [];
-for (let i = N; i > 0; i--) {
-  let [r1, c1, r2, c2] = input[i].split(" ").map(Number);
-  let sum = 0;
-  for (let row = r1; row < r2 + r1; row++) {
-    for (let col = c1; col < c2 + c1; col++) {
-      if (board[row][col]) continue;
-      board[row][col] = i;
-      sum++;
+let white = 0;
+let blue = 0;
+const cutBoard = (board) => {
+  let divider = board.length / 2;
+  let [one, two, three, four] = [[], [], [], []];
+  let tmp = board[0][0];
+  for (let i = 0; i < board.length; i++) {
+    for (let j = 0; j < board.length; j++) {
+      if (tmp !== board[i][j]) {
+        board.slice(0, divider).forEach((el) => {
+          one.push(el.slice(0, divider));
+          two.push(el.slice(divider));
+        });
+        board.slice(divider).forEach((el) => {
+          three.push(el.slice(0, divider));
+          four.push(el.slice(divider));
+        });
+        cutBoard(one);
+        cutBoard(two);
+        cutBoard(three);
+        cutBoard(four);
+        return;
+      }
     }
   }
-  result.push(sum);
-}
+  tmp === 1 ? blue++ : white++;
+  return;
+};
 
-for (let i = N - 1; i >= 0; i--) {
-  console.log(result[i]);
-}
+cutBoard(board);
+console.log(blue);
+console.log(white);

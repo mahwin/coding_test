@@ -1,5 +1,5 @@
-let input = `3 4
-12`.split("\n");
+let input = `7 6
+87`.split("\n");
 
 const [C, R] = input[0].split(" ").map(Number);
 const target = Number(input[1]);
@@ -25,6 +25,7 @@ const solution = () => {
   for (let i = 0; i < Math.ceil(R / 2); i++) {
     let [r, c] = [i, i];
     board[r][c] = cnt;
+    if (cnt === target) return console.log([c + 1, r + 1].join(" "));
     cnt++;
     for (let dir of dirs) {
       while (isValid(r + dir[0], c + dir[1])) {
@@ -37,5 +38,6 @@ const solution = () => {
       }
     }
   }
+  return console.log("0");
 };
 solution();
