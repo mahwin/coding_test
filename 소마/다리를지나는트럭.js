@@ -1,25 +1,26 @@
 function solution(bridge_length, weight, truck_weights) {
-  let time = 0;
-  let pointer = 0;
-  let queue = [];
+  let time = 1;
+  let left = 0;
   let sum = 0;
-  while (pointer < truck_weights.length || queue.length !== 0) {
-    if (queue[0] && queue[0][1] === bridge_length) {
-      const [w, _] = queue.shift();
-      sum -= w;
+  let stack = [];
+  while (left < truck_weights.length || stack.length) {
+    if (
+      left < truck_weights.length &&
+      stack.length < bridge_length &&
+      sum + truck_weights[left] <= weight
+    ) {
+      stack.push([truck_weights[left], bridge_length]);
+      sum += truck_weights[left];
+      left++;
     }
-
-    if (sum + truck_weights[pointer] <= weight) {
-      queue.push([truck_weights[pointer], 0]);
-      sum += truck_weights[pointer];
-      pointer++;
+    if (stack.length) {
+      stack = stack.map((el) => [el[0], el[1] - 1]);
+      if (stack[0][1] === 0) {
+        const [w, _] = stack.shift();
+        sum -= w;
+      }
     }
-
-    queue = queue.map((el) => [el[0], el[1] + 1]);
     time++;
   }
-
   return time;
 }
-
-console.log(solution(2, 10, [7, 4, 5, 6]));
