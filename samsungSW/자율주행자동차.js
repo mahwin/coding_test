@@ -13,15 +13,16 @@ rl.on("close", () => {
   const [rowLen, colLen] = input[0].split(" ").map(Number);
 
   const dirs = [
-    [1, 0],
-    [0, 1],
     [-1, 0],
+    [0, 1],
+    [1, 0],
     [0, -1],
   ];
   //d : 0 북 1 동 2 남 3 서
   const [row, col, d] = input[1].split(" ").map(Number);
 
   const board = [];
+
   for (let i = 2; i < 2 + rowLen; i++) {
     board.push(input[i].split(" ").map(Number));
   }
@@ -38,24 +39,27 @@ rl.on("close", () => {
   };
   const queue = [[row, col, d]];
   while (queue.length) {
-    const [r, c, d] = queue.shift();
+    let [r, c, d] = queue.shift();
     for (let i = 0; i < 4; i++) {
-      nd = d - 1 === -1 ? 3 : d - 1;
-      const nr = dirs[nd][0] + r;
-      const nc = dirs[nd][1] + c;
+      d = d - 1 === -1 ? 3 : d - 1;
+      const nr = dirs[d][0] + r;
+      const nc = dirs[d][1] + c;
+
       if (isValid(nr, nc) && !v[nr][nc] && !board[nr][nc]) {
         v[nr][nc] = true;
         result++;
-        queue.push([nr, nc, nd]);
+        queue.push([nr, nc, d]);
         break;
       }
+      if (i === 3) {
+        //4방향 다 가도 갈 곳이 없었을 경우
+        const br = r - dirs[d][0];
+        const bc = c - dirs[d][1];
+        if (!board[br][bc]) {
+          queue.push([br, bc, d]);
+        }
+      }
     }
-    //4방향 다 가도 갈 곳이 없었을 경우
-    const br = -dirs[d][0] + r;
-    const bc = -dirs[d][1] + c;
-    if (!board[br][bc]) {
-      queue.push([br, bc, d]);
-    } else break;
   }
   console.log(result);
   process.exit();
