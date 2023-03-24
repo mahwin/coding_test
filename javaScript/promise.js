@@ -63,3 +63,38 @@ job1()
   .then(function (data) {
     console.log(data);
   });
+
+/// promise all , promise race
+const 프로미스배열 = [
+  new Promise(res, rej),
+  new Promise(res, rej),
+  new Promise(res, rej),
+];
+
+//제일 늦게 끝나느 프로미스가 끝나고 난 뒤에 결과값이 result에 배열로 들어감.
+Promise.all[프로미스배열].then(function (result) {
+  console.log(result);
+  console.log("promise all done!");
+});
+
+//제일 먼저 끝나는 작업이 끝나자마자 콜백함수가 호출됨.
+Promise.race[프로미스배열].then(function (result) {
+  console.log(result);
+  console.log("promise race done!");
+});
+
+function timer(time) {
+  return new Promise(function (res, rej) {
+    setTimeout(() => res(time), time);
+  });
+}
+
+Promise.all[(timer(1000), timer(2000), timer(3000))].then(function (result) {
+  console.log(result);
+  console.log("promise all done!");
+});
+
+Promise.race[(timer(1000), timer(2000), timer(3000))].then(function (result) {
+  console.log(result);
+  console.log("promise race done!");
+});
