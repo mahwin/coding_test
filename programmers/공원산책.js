@@ -15,10 +15,7 @@ function solution(park, routes) {
       }
     }
   }
-  routes.forEach((route) => {
-    move(park, route);
-    console.log(route, robot);
-  });
+  routes.forEach((route) => move(park, route));
 
   return robot;
 }
