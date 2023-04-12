@@ -4,31 +4,35 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 let input = [];
-let info = [];
-let n, v, max;
-max = -Infinity;
 rl.on("line", function (line) {
   input.push(line);
 }).on("close", function () {
-  n = Number(input[0]);
-
-  for (let i = 1; i <= n; i++) {
-    info.push(input[i].split(" ").map(Number));
-  }
-
-  v = Array.from({ length: n }, () => false);
-  dfs(0, 0);
-
-  console.log(max);
+  solution();
   process.exit();
 });
 
-const dfs = (next, earn) => {
-  if (earn > max) max = earn;
-  for (let i = next; i < n; i++) {
-    const [duration, money] = info[i];
-    if (duration + i <= n) {
-      dfs(duration + i, earn + money);
-    }
+//변수
+let n;
+let dayInfo = []; //[[날,임금]]
+let result = -Infinity;
+
+const solution = () => {
+  n = Number(input[0]);
+
+  // input 데이터 정보 [날,임금] 묶어서 Array에 저장
+  for (let i = 1; i <= n; i++) {
+    const [day, earn] = input[i].split(" ").map(Number);
+    dayInfo.push([day, earn]);
+  }
+
+  dfs(0, 0); // 일을 끝낸 날짜, 이때까지 번 돈
+  console.log(result);
+};
+
+const dfs = (currentDay, acc) => {
+  result = Math.max(acc, result);
+  for (let day = currentDay; day < n; day++) {
+    const nextDay = day + dayInfo[day][0];
+    if (nextDay <= n) dfs(nextDay, acc + dayInfo[day][1]);
   }
 };
