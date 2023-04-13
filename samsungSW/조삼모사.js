@@ -5,64 +5,80 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 let input = [];
+let n; // 전체 수
+let works; // 전체 일의 인덱스
+let target; // 전체 수의 반
+let result = Infinity;
+const selectSet = new Set(); // 계산 했던 일의 집합 저장해서 반복 줄이기.
+let v = [];
+const permutation = []; //2개씩 뽑는 순열 저장.
 rl.on("line", (line) => {
   input.push(line);
 });
 
 rl.on("close", () => {
-  const board = [];
-  const n = input[0];
-  for (let i = 1; i <= n; i++) {
-    board.push(input[i].split(" ").map(Number));
+  for (let i = 1; i <= Number(input[0]); i++) {
+    input[i] = input[i].split(" ").map(Number);
   }
-  let pick = n / 2;
-  const totalArr = Array.from({ length: n }, (_, i) => i);
-  const combis = getCombination(totalArr, pick);
 
-  let min = Infinity;
-  for (const joArr of combis) {
-    const moArr = totalArr.filter((el) => !joArr.includes(el));
-    let joScore = cal(board, joArr);
-    let moScore = cal(board, moArr);
-    let total = Math.abs(joScore - moScore);
-
-    min = Math.min(total, min);
-  }
-  console.log(min);
-
+  solution();
   process.exit();
 });
 
-function cal(board, arr) {
-  let score = 0;
-  let v = Array.from({ length: arr.length }, () => false);
-  let roots = [];
+const cal = (morning, afternoon) => {
+  let morningScore = 0;
+  let afternoonScore = 0;
 
-  const dfs = (cnt, root) => {
-    if (cnt === 2) return roots.push(root);
-    for (let i = 0; i < arr.length; i++) {
-      if (v[i]) continue;
-      v[i] = true;
-      dfs(cnt + 1, [...root, i]);
-      v[i] = false;
-    }
-  };
-
-  dfs(0, []);
-
-  for (let root of roots) {
-    const [f, b] = [arr[root[0]], arr[root[1]]];
-    score += board[f][b];
+  for (let i = 0; i < permutation.length; i++) {
+    const [idx1, idx2] = permutation[i];
+    morningScore += input[morning[idx1]][morning[idx2]];
+    afternoonScore += input[afternoon[idx1]][afternoon[idx2]];
   }
-  return score;
-}
+  result = Math.min(result, Math.abs(morningScore - afternoonScore));
+};
 
-function getCombination(arr, pick) {
-  if (pick === 1) return arr.map((el) => [el]);
-  const result = [];
-  arr.forEach((fixed, index) => {
-    tmp = getCombination(arr.slice(index + 1), pick - 1);
-    tmp.forEach((el) => result.push([fixed, ...el]));
-  });
-  return result;
-}
+// 2개씩 뽑아주는 순열
+const getPermutation = (arr) => {
+  if (2 === arr.length) {
+    permutation.push(arr);
+    return;
+  }
+  for (let i = 0; i < target; i++) {
+    if (v[i]) continue;
+    v[i] = true;
+    getPermutation([...arr, i]);
+    v[i] = false;
+  }
+};
+
+//아침 점심으로 일 나눠주기.
+const dfs = (node, morning) => {
+  if (target === morning.length) {
+    let afternoon = works.filter((work) => !morning.includes(work));
+    let afternoonKey = afternoon.join(","); // 배열로 값 비교하면 오래걸려서 join 해줌. 순서대로 moring에 집어넣기 때문에 sort 상관 x
+
+    if (selectSet.has(afternoonKey)) return;
+    selectSet.add(afternoonKey);
+    selectSet.add(morning.join(","));
+    cal(morning, afternoon);
+    return;
+  }
+
+  for (let i = node; i < n; i++) {
+    dfs(i + 1, [...morning, i]);
+  }
+};
+
+const solution = () => {
+  n = Number(input.shift());
+  target = n / 2;
+  works = Array.from({ length: n }, (_, i) => i);
+  v = Array.from({ length: target }, () => false);
+
+  getPermutation([]);
+
+  dfs(0, []); // 확인할 일의 인덱스, 아침에 할 일.
+  console.log(result);
+};
+
+// 수행시간 : 1684ms
