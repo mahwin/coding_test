@@ -5,33 +5,59 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
+//변수 정의
 let input = [];
+let operators = []; //연산자수
+let min = Infinity;
+let max = -Infinity;
+let n;
+
 rl.on("line", (line) => {
-  input.push(line.trim());
+  input.push(line);
 });
 
 rl.on("close", () => {
-  const n = Number(input[0]);
-  const nums = input[1].split(" ").map(Number);
-
-  const operInfo = input[2].split(" ").map(Number);
-
-  let min = Infinity;
-  let max = -Infinity;
-
-  const dfs = (val, cnt, remainOpers) => {
-    if (cnt === n) {
-      min = Math.min(min, val);
-      max = Math.max(max, val);
-      return;
-    }
-    const [plus, minus, mul] = remainOpers;
-    if (plus > 0) dfs(val + nums[cnt], cnt + 1, [plus - 1, minus, mul]);
-    if (minus > 0) dfs(val - nums[cnt], cnt + 1, [plus, minus - 1, mul]);
-    if (mul > 0) dfs(val * nums[cnt], cnt + 1, [plus, minus, mul - 1]);
-  };
-
-  dfs(nums[0], 1, operInfo);
-  console.log([min, max].join(" "));
+  solution();
   process.exit();
 });
+
+const solution = () => {
+  n = Number(input[0]);
+  operators = input[2].split(" ").map(Number);
+  input = input[1].split(" ").map(Number);
+
+  dfs(input[0], 1); // 계산 값, 다음 노드의 인덱스.
+
+  console.log(min, max);
+};
+
+dfs = (acc, cnt) => {
+  if (n === cnt) {
+    min = Math.min(min, acc);
+    max = Math.max(max, acc);
+    return;
+  }
+
+  //덧셈 연산자가 남아 있으면 수행
+  if (operators[0] > 0) {
+    operators[0]--;
+    dfs(acc + input[cnt], cnt + 1);
+    operators[0]++;
+  }
+
+  //뺄셈 연산자가 남아 있으면 수행
+  if (operators[1] > 0) {
+    operators[1]--;
+    dfs(acc - input[cnt], cnt + 1);
+    operators[1]++;
+  }
+  //곱 연산자가 남아 있으면 수행
+  if (operators[2] > 0) {
+    operators[2]--;
+    dfs(acc * input[cnt], cnt + 1);
+    operators[2]++;
+  }
+};
+
+// 수행 시간 412ms
+// 메모리 10MB
