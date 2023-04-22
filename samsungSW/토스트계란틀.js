@@ -1,137 +1,89 @@
-class Node {
-  constructor(data) {
-    this.data = data;
-    this.next = null;
-  }
-}
-
-class Queue {
-  constructor() {
-    this.head = null;
-    this.tail = null;
-    this.size = 0;
-  }
-
-  getSize() {
-    return this.size;
-  }
-
-  enqueue(data) {
-    const node = new Node(data);
-    if (!this.head) this.head = node;
-    else this.tail.next = node;
-
-    this.tail = node;
-    this.size++;
-  }
-  dequeue() {
-    if (!this.head) return null;
-    const data = this.head.data;
-    this.head = this.head.next;
-    this.size--;
-    return data;
-  }
-
-  getQueue() {
-    if (!this.head) return null;
-    let node = this.head;
-    const array = [];
-    while (node) {
-      array.push(node.data);
-      node = node.next;
-    }
-    return array;
-  }
-}
-
 const readline = require("readline");
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
+
+//전역 변수 설정
 let input = [];
+let n, L, H; // n X n 배열의 크기 L 최소 R 최대
+let result = 0; // 몇번의 이동이 있었는지 저장;
+let v; // 방문 체크
+const dirs = [
+  [0, 1],
+  [1, 0],
+  [-1, 0],
+  [0, -1],
+];
 rl.on("line", (line) => {
-  input.push(line);
+  input.push(line.trim().split(" ").map(Number));
 });
 
 rl.on("close", () => {
-  let board = [];
-  const [n, low, high] = input[0].split(" ").map(Number);
+  solution();
+  process.exit();
+});
 
-  for (let i = 1; i <= n; i++) {
-    board.push(input[i].trim().split(" ").map(Number));
-  }
+const isValid = (r, c) => {
+  if (r < 0 || c < 0 || r >= n || c >= n) return false;
+  return true;
+};
 
-  const dirs = [
-    [0, 1],
-    [1, 0],
-    [-1, 0],
-    [0, -1],
-  ];
+//한 지점을 기점으로 bfs를 돌면서 이동할 수 있는지 확인
+const move = (row, col) => {
+  const queue = [[row, col]];
 
-  const isValid = (r, c) => {
-    if (r < 0 || c < 0 || r >= n || c >= n) return false;
-    return true;
-  };
-
-  const bfs = (v, row, col) => {
-    let eggSum = board[row][col];
-    const queue = new Queue();
-    queue.enqueue([row, col]);
-
-    const root = [[row, col]];
-
-    while (queue.getSize() !== 0) {
-      const [r, c] = queue.dequeue();
-
-      for (const d of dirs) {
-        const nr = d[0] + r;
-        const nc = d[1] + c;
-        if (isValid(nr, nc) && !v[nr][nc]) {
-          const diff = Math.abs(board[r][c] - board[nr][nc]);
-
-          if (diff >= low && diff <= high) {
-            eggSum += board[nr][nc];
-            root.push([nr, nc]);
-            queue.enqueue([nr, nc]);
-            v[nr][nc] = true;
-          }
+  let egg = input[row][col]; //조건 만족하는 달걀의 양
+  const root = [[row, col]]; // 조건 만족하는 계란틀의 위치 저장
+  while (queue.length) {
+    const [r, c] = queue.shift();
+    for (const d of dirs) {
+      const nr = d[0] + r;
+      const nc = d[1] + c;
+      if (isValid(nr, nc) && !v[nr][nc]) {
+        const diff = Math.abs(input[r][c] - input[nr][nc]);
+        if (L <= diff && diff <= H) {
+          v[nr][nc] = true;
+          egg += input[nr][nc];
+          console.log(nr, nc);
+          root.push([nr, nc]);
+          queue.push([nr, nc]);
         }
       }
     }
+  }
 
-    if (root.length === 1) return false;
-    else {
-      let egg = Math.floor(eggSum / root.length);
-      root.forEach(([r, c]) => {
-        board[r][c] = egg;
-        v[r][c] = true;
-      });
-      return true;
+  if (root.length === 1) return false;
+  let divideEgg = Math.floor(egg / root.length);
+  root.forEach(([r, c]) => {
+    input[r][c] = divideEgg;
+  });
+  return true;
+};
+
+//모든 지점을 체크하면서 이동이 한 번이라도 있었다면 return true else false;
+const isCanMove = () => {
+  v = Array.from({ length: n }, () => Array.from({ length: n }, () => false));
+  let flag = false;
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      if (v[r][c]) continue;
+      v[r][c] = true;
+      if (move(r, c)) flag = true;
     }
-  };
+  }
+  return flag;
+};
 
-  let flag = true;
-  let result = 0;
-  while (flag) {
-    flag = false;
-
-    let v = Array.from({ length: n }, () =>
-      Array.from({ length: n }, () => false)
-    );
-
-    for (let r = 0; r < n; r++) {
-      for (let c = 0; c < n; c++) {
-        if (v[r][c]) continue;
-        v[r][c] = true;
-        const isChange = bfs(v, r, c);
-        if (isChange) flag = true;
-      }
-    }
-    if (flag) result++;
+const solution = () => {
+  [n, L, H] = input.shift();
+  while (true) {
+    if (!isCanMove()) break;
+    result++;
   }
   console.log(result);
+};
 
-  process.exit();
-});
+// 수행 시간 : 653ms
+// 메모리 : 18MB
