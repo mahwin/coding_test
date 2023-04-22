@@ -1,75 +1,74 @@
 const readline = require("readline");
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
+
+//공통 변수 선언
 let input = [];
-let n, m;
-let hosipital = [];
-let patient = [];
-let brokenHospital = [];
-let result = Infinity;
+let n, m; // n은 도기의 크기 n X n, m은 선택할 병원
+let hospitalArr = []; // 모든 병원의 위치 정보를 저장
+let patientArr = []; // 모든 환자의 위치 정보를 저장
+let selected = []; // 선택한 병원 인덱스 저장
+let result = Infinity; // 폐쇄할 병원의 수
 
-const dirs = [
-  [0, 1],
-  [1, 0],
-  [-1, 0],
-  [0, -1],
-];
+rl.on("line", (line) => {
+  input.push(line.split(" ").map(Number));
+});
 
-rl.on("line", function (line) {
-  input.push(line.trim().split(" ").map(Number));
-}).on("close", function () {
-  [n, m] = input.shift();
-
-  solution();
-
+rl.on("close", () => {
+  simulation();
   process.exit();
 });
 
-// 없앨 병원 고르기
-const dfs = (nextNode, cnt, target) => {
-  if (cnt === target) {
-    search(brokenHospital);
-  }
-
-  for (let i = nextNode; i < hosipital.length; i++) {
-    brokenHospital.push(hosipital[i]);
-    dfs(i + 1, cnt + 1, target);
-    brokenHospital.pop();
+const findTarget = (target, saveArr) => {
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      if (input[r][c] === target) {
+        saveArr.push([r, c]);
+      }
+    }
   }
 };
 
-const isValid = (r, c) => {
-  if (r < 0 || c < 0 || r >= n || c >= n) return false;
-  return true;
-};
-
-// 환자들 좌표를 기준으로 몇 번만에 병원을 찾을 수 있는 총합을 구함.
-const search = (brokenHospital) => {
-  let possible = hosipital.filter((h) => !brokenHospital.includes(h));
+const calTotalDistance = () => {
   let total = 0;
 
-  for (let pIdx = 0; pIdx < patient.length; pIdx++) {
-    const [pr, pc] = patient[pIdx];
-    let tmp = Infinity;
-    for (const [hr, hc] of possible) {
-      tmp = Math.min(Math.abs(pr - hr) + Math.abs(pc - hc), tmp);
-    }
-    total += tmp;
-  }
-
-  result = Math.min(result, total);
+  patientArr.forEach(([pr, pc]) => {
+    let min = Infinity;
+    selected.forEach((hosIdx) => {
+      const [hr, hc] = hospitalArr[hosIdx];
+      min = Math.min(Math.abs(pr - hr) + Math.abs(pc - hc), min);
+    });
+    total += min;
+  });
+  result = Math.min(total, result);
 };
 
-const solution = () => {
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j < n; j++) {
-      if (input[i][j] === 2) hosipital.push([i, j]);
-      else if (input[i][j] === 1) patient.push([i, j]);
-    }
+//dfs돌면서 병원 선택하고 조건에 충족하면 calTotalDistance로 환자의 최단 거리 합 구함.
+const selectHospital = (node, cnt) => {
+  if (cnt === m) {
+    calTotalDistance();
   }
 
-  dfs(0, 0, hosipital.length - m);
+  if (node === hospitalArr.length) return;
+
+  selectHospital(node + 1, cnt);
+  //백트래킹.
+  selected.push(node);
+  selectHospital(node + 1, cnt + 1);
+  selected.pop();
+};
+
+const simulation = () => {
+  [n, m] = input.shift();
+  findTarget(1, patientArr); // 환자 정보 저장
+  findTarget(2, hospitalArr); // 병원 정보 저장
+
+  selectHospital(0, 0);
   console.log(result);
 };
+
+// 수행시간 602ms
+// 메모리 13MB
