@@ -4,88 +4,87 @@ const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
+
 let input = [];
+let n;
+const BOARD_LEN = 104;
+const board = Array.from({ length: BOARD_LEN }, () =>
+  Array.from({ length: BOARD_LEN }, () => 0)
+); //단위 정사각형 만들 때 사용.
+const dirs = [
+  // 오른쪽,위쪽, 왼쪽, 아래쪽
+  [0, 1],
+  [-1, 0],
+  [0, -1],
+  [1, 0],
+];
+
 rl.on("line", (line) => {
   input.push(line.trim());
 });
 
 rl.on("close", () => {
-  const n = Number(input[0]);
-
-  const board = Array.from({ length: 100 }, () =>
-    Array.from({ length: 100 }, () => 0)
-  );
-
-  for (let i = 1; i <= n; i++) {
-    let [x, y, d, g] = input[i].split(" ").map(Number);
-    moveDragon(x, y, d, g, board);
-  }
-  console.log(cntBox(board));
+  solution();
   process.exit();
 });
 
-function moveDragon(x, y, d, g, board) {
-  // d는 방향 0 오른쪽 1위 2 왼 3 아래
-  const dirs = [
-    [0, 1],
-    [-1, 0],
-    [0, -1],
-    [1, 0],
-  ];
+const flip = (x, y, baseX, baseY) => {
+  const zeroX = x - baseX;
+  const zeroY = y - baseY;
+  return [zeroY + baseX, baseY - zeroX];
+};
 
-  let root = [
+const draw = (x, y, d, g) => {
+  const route = [
     [x, y],
     [x + dirs[d][0], y + dirs[d][1]],
   ];
 
-  while (g--) {
-    let newRoot = [];
-    const [fixed_x, fixed_y] = root[root.length - 1];
-    for (let i = 0; i < root.length - 1; i++) {
-      const [x, y] = root[i];
-      newRoot.push(rotate(x, y, fixed_x, fixed_y));
+  for (let i = 0; i < g; i++) {
+    const len = route.length;
+    const [baseX, baseY] = route[len - 1];
+    for (let j = len - 2; j > -1; j--) {
+      route.push(flip(...route[j], baseX, baseY));
     }
-    root = root.concat(newRoot.reverse());
   }
-  root.forEach(([x, y]) => {
-    board[x][y] = 1;
-  });
 
-  return root;
-}
+  route.forEach(([r, c]) => (board[r][c] = 1));
+};
 
-function rotate(x, y, fixed_x, fixed_y) {
-  // 원점으로 이동
-  x -= fixed_x;
-  y -= fixed_y;
+const isValid = (x, y) => {
+  if (x < 0 || y < 0 || x >= BOARD_LEN || y >= BOARD_LEN) return false;
+  return true;
+};
 
-  // 회전
-  return [y + fixed_x, fixed_y - x];
-}
-
-function cntBox(board) {
-  const checkRoot = [
-    [0, 1],
-    [1, 1],
-    [1, 0],
-  ];
+const cntBox = () => {
   let result = 0;
-  for (let r = 0; r < 99; r++) {
-    for (let c = 0; c < 99; c++) {
-      if (board[r][c]) {
-        flag = true;
-        for (let checkDir of checkRoot) {
-          const nr = checkDir[0] + r;
-          const nc = checkDir[1] + c;
-          if (board[nr][nc] === 0) {
-            flag = false;
-            break;
-          }
-        }
-        console.log(r, c, flag);
-        if (flag) result++;
+  for (let x = 0; x < BOARD_LEN; x++) {
+    for (let y = 0; y < BOARD_LEN; y++) {
+      if (!board[x][y]) continue;
+
+      if (
+        isValid(x + 1, y + 1) &&
+        board[x + 1][y] &&
+        board[x][y + 1] &&
+        board[x + 1][y + 1]
+      ) {
+        result++;
       }
     }
   }
+
   return result;
-}
+};
+
+const solution = () => {
+  n = Number(input[0]);
+  for (let i = 1; i <= n; i++) {
+    const [x, y, d, g] = input[i].split(" ").map(Number);
+    draw(x, y, d, g);
+  }
+
+  console.log(cntBox());
+};
+
+//수행 시간 457ms
+//메모리 14MB
