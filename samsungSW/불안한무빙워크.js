@@ -1,81 +1,77 @@
 const readline = require("readline");
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
+
 let input = [];
-let zeroCnt = 0;
-rl.on("line", function (line) {
-  input.push(line.trim().split(" ").map(Number));
-}).on("close", function () {
-  console.log(simulation());
+let n, k; // 무빙워크 길이, 안정성
+let movingwalker = []; // 무빙워크의 안전성
+let people = []; // 특정 무빙워크 인덱스를 사람이 밟고 있는지 여부를 boolean;
+
+rl.on("line", (line) => {
+  input.push(line.trim());
+});
+
+rl.on("close", () => {
+  solution();
   process.exit();
 });
 
-//무빙워크 한 칸 회전   [0,1,2,n-1] => [2n-1,0,1,...,n-2]
-const rotate = () => {
-  let pre = movingwalk[0] - 1 < 0 ? 2 * n - 1 : movingwalk[0] - 1;
-
-  //한 칸 회전 후 무빙워크
-  movingwalk.pop();
-  movingwalk.unshift(pre);
-  //한 칸 회전 후 무빙워크 위의 사람
-  people.pop();
-  people.unshift(null);
-  if (people[n - 1] !== null) people[n - 1] = null;
+const rotateMoving = () => {
+  // step1 무빙워크 회전
+  movingwalker.unshift(movingwalker.pop());
+  people.unshift(people.pop());
 };
 
-//무빙워크 위의 사람 한 칸 전진
-
-const walk = () => {
-  for (let i = n - 1; i > -1; i--) {
-    if (people[i] === null) continue;
-    const movingwalkIdx = people[i];
-    const nextMovingwalkIdx =
-      movingwalkIdx + 1 > 2 * n - 1 ? 0 : movingwalkIdx + 1;
-    if (input[nextMovingwalkIdx] > 0 && people[i + 1] === null) {
-      input[nextMovingwalkIdx]--;
-      people[i + 1] = nextMovingwalkIdx;
-      people[i] = null;
-      if (input[nextMovingwalkIdx] === 0) zeroCnt++;
+const walkMovingwalker = () => {
+  // step2 무빙워크에서 사람이 이동
+  for (let i = people.length - 2; i > -1; i--) {
+    if (people[i] && !people[i + 1] && movingwalker[i + 1] > 0) {
+      people[i + 1] = true;
+      people[i] = false;
+      movingwalker[i + 1]--;
     }
   }
 };
 
-// 사람 추가
-const poepleIn = () => {
-  const idx = movingwalk[0];
-
-  if (input[idx] > 0) {
-    input[idx]--;
-    people[0] = idx;
-    if (input[idx] === 0) zeroCnt++;
+const enterMovingwalker = () => {
+  // step3 1번 칸이 비었으면 사람이 올라감.
+  if (!people[0] && movingwalker[0] > 0) {
+    people[0] = true;
+    movingwalker[0]--;
   }
 };
 
-//안정성 평가
-const isSaved = () => {
-  return zeroCnt >= k ? false : true;
+const isSafe = () => {
+  // step4 안정성 체크
+  return movingwalker.filter((safty) => safty === 0).length < k;
 };
 
-let movingwalk;
-let n, k; // 무빙 워크의 길이, 안정성 판별 갯수
+const exit = () => {
+  // n번칸 위치를 밟고 있으면 바로 나감.
+  people[n - 1] = false;
+};
 
-const simulation = () => {
-  [n, k] = input.shift();
-  input = input[0];
-  people = Array.from({ length: n }, () => null);
-  movingwalk = Array.from({ length: n }, (_, i) => i);
-  let test = 1;
-
+const solution = () => {
+  [n, k] = input[0].split(" ").map(Number);
+  movingwalker = input[1].split(" ").map(Number);
+  people = Array.from({ length: n }, () => false);
+  let trial = 1;
   while (true) {
-    rotate();
-    walk();
-    poepleIn();
-    if (!isSaved()) break;
+    rotateMoving();
+    exit();
+    walkMovingwalker();
+    exit();
+    enterMovingwalker();
 
-    // console.log(zeroCnt);
-    test++;
+    if (!isSafe()) break;
+    trial++;
   }
-  return test;
+
+  console.log(trial);
 };
+
+// 수행 시간 715ms
+// 메모리 13MB
