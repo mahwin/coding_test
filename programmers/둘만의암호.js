@@ -1,17 +1,19 @@
 function solution(s, skip, index) {
-  let result = "";
-  let set = new Set("abcdefghijklmnopqrstuvwxyz");
-  skip.split("").forEach((el) => set.delete(el));
-  const alphaArr = [...set];
+  let answer = "";
+
+  const alpha = "abcdefghijklmnopqrstuvwxyz";
+  const skipSet = new Set(skip);
   for (let i = 0; i < s.length; i++) {
-    const alpha = s[i];
-    let initIdx = alphaArr.indexOf(alpha);
+    const char = s[i];
+
+    let charIdx = alpha.indexOf(char);
     let cnt = 0;
-    while (cnt !== index) {
-      initIdx = initIdx + 1 === alphaArr.length ? 0 : initIdx + 1;
-      cnt++;
+
+    while (cnt != index) {
+      charIdx = charIdx + 1 === alpha.length ? 0 : charIdx + 1;
+      if (!skipSet.has(alpha[charIdx])) cnt++;
     }
-    result += alphaArr[initIdx];
+    answer += alpha[charIdx];
   }
-  return result;
+  return answer;
 }
