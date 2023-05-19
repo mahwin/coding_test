@@ -1,42 +1,32 @@
-const sumScore = (score) => {
-  return score[0] + score[1];
-};
-
 function solution(scores) {
-  let wanho = sumScore(scores[0]);
-  let newScores = [scores[0]];
+  const wanho = scores[0][0] + scores[0][1]; // 원호의 등수를 구하기 위해
+  let exist = false; // 원호가 인센티브를 받을 수 있으면 true;
+  let grade = 0; //원호보다 합산 점수가 높으면 +1
 
-  scores.forEach((el) => {
-    if (wanho < sumScore(el)) {
-      newScores.push(el);
-    }
-  });
+  //합산 점수가 원호보다 낮으면 논외, 원호 찾기 위해 인덱스 붙임(0)
+  let filterScores = [scores[0].concat(0)];
+  scores.forEach((el, i) =>
+    el[0] + el[1] > wanho ? filterScores.push(el.concat(i)) : null
+  );
+  filterScores = filterScores.sort((a, b) =>
+    a[0] === b[0] ? b[1] - a[1] : b[0] - a[0]
+  ); // 내림차순 정렬
 
-  let result = [];
-
-  for (let i = 0; i < newScores.length; i++) {
-    let flag = true;
-    for (let j = 0; j < newScores.length; j++) {
-      if (
-        newScores[i][0] < newScores[j][0] &&
-        newScores[i][1] < newScores[j][1]
-      ) {
-        if (i === 0) return -1;
-        flag = false;
+  const len = filterScores.length;
+  let incent = [];
+  for (let i = 0; i < len; i++) {
+    const [s1, s2, idx] = filterScores[i];
+    let canRecived = true;
+    for (let j = i - 1; j > -1; j--) {
+      if (i === j) continue;
+      else if (s1 < filterScores[j][0] && s2 < filterScores[j][1]) {
+        if (idx === 0) return -1;
+        canRecived = false;
         break;
       }
     }
-    if (flag) result.push(i);
+    if (canRecived) grade++;
   }
-  return result.length;
-}
 
-console.log(
-  solution([
-    [2, 2],
-    [1, 4],
-    [3, 2],
-    [3, 2],
-    [2, 1],
-  ])
-);
+  return grade;
+}
