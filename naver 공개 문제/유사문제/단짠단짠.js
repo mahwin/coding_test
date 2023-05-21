@@ -25,12 +25,13 @@ const solution = (input) => {
     sumArr.push(sumArr.at(-1) + foods[i]);
   }
 
-  const cnt = Array.from({ length: 10 }, () => 0);
+  const map = {};
 
+  console.log(n, foods, sumArr);
   for (let i = 0; i <= n; i++) {
     const curSum = sumArr[i];
-    result += cnt[curSum];
-    cnt[curSum]++;
+    result += map[curSum] || 0;
+    map[curSum] = map[curSum] ? map[curSum] + 1 : 1;
   }
   return result;
 };
