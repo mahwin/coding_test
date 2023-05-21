@@ -1,33 +1,24 @@
 function solution(sequence) {
-  let answer = Math.max(sequence[0], -sequence[0]);
-  const dpPositive = [];
-  const dpNegative = [];
-
-  for (let i = 0; i < sequence.length; i++) {
-    const num = sequence[i];
-    if (i == 0) {
-      dpPositive.push(num);
-      dpNegative.push(-num);
-      continue;
-    }
-    if (i % 2 === 0) {
-      dpPositive.push(Math.max(dpPositive[i - 1] + num, num));
-      dpNegative.push(Math.max(dpNegative[i - 1] - num, -num));
+  let answer = -Infinity;
+  const dp = { "+": [-Infinity], "-": [-Infinity] };
+  // dp['+'] 짝수마다 + 홀수는 -
+  // dp['-'] 짝수마다 - 홀수는 +
+  sequence.forEach((num, i) => {
+    if (i % 2) {
+      //짝수
+      dp["+"].push(Math.max(dp["+"][i] + num, num));
+      dp["-"].push(Math.max(dp["-"][i] - num, -num));
     } else {
-      dpPositive.push(Math.max(dpPositive[i - 1] - num, -num));
-      dpNegative.push(Math.max(dpNegative[i - 1] + num, num));
+      dp["+"].push(Math.max(dp["+"][i] - num, -num));
+      dp["-"].push(Math.max(dp["-"][i] + num, num));
     }
-    answer = Math.max(answer, dpPositive[i], dpNegative[i]);
-  }
+    answer = Math.max(dp["+"].at(-1), dp["-"].at(-1), answer);
+  });
 
   return answer;
+
+  // 이렇게 하면 메모리 초과 나옴.. 그냥 파이프라인 한 번 돌때 Max값도 점진적으로 계산하자.
+  //   const pM = Math.max(...dp["+"]);
+  //   const mM = Math.max(...dp["-"]);
+  //   return pM > mM ? pM : mM;
 }
-
-const gen = (num) => {
-  let result = [];
-
-  for (let i = 0; i < num; i++) {
-    result.push(Math.floor(Math.random() * 100));
-  }
-  return result;
-};
