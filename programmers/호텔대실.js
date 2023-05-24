@@ -1,54 +1,48 @@
 const timeToMin = (time) => {
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
+  const [H, M] = time.split(":").map(Number);
+  return H * 60 + M;
 };
 
 function solution(book_time) {
-  book_time = book_time.map(([start, end]) => [
-    timeToMin(start),
-    timeToMin(end) + 10,
-  ]);
-  book_time = book_time.sort((a, b) => {
-    if (a[0] === b[0]) return a[1] - b[1];
-    else return a[0] - b[0];
+  // 퇴실하고 10분 뒤에야 방이 준비됨!
+  // 시작 시간을 기준으로 정렬하고 하나씩 예약 정보를 보면서
+  // 나가는 시간 + 10분한 값을 stack에 넣고 다음 손님의 시작 시간보다
+  // 전 손님이 나가고 호텔이 준비하는 시간이 이르다면 stack에서 빼자
+  // stack.length => 예약 방의 수
+
+  // '10:20' => 620
+  book_time = book_time.map((el) => [timeToMin(el[0]), timeToMin(el[1])]);
+
+  book_time.sort((a, b) => a[0] - b[0]);
+  let stack = [];
+
+  let max = 1;
+
+  book_time.forEach(([s, e]) => {
+    stack = stack.filter((cleanTime) => cleanTime > s);
+    stack.push(e + 10);
+    max = Math.max(stack.length, max);
   });
+  return max;
+}
 
-  let max = -1; // 결과 저장
+function solution1(book_time) {
+  book_time = book_time.map((el) => [timeToMin(el[0]), timeToMin(el[1])]);
 
-  let book = []; // 현재 시간에 투숙중인 정보 저장
-  let bp = 0; //book pointer
-  const lastTime = timeToMin("24:00");
-  for (let time = 0; time < lastTime; time++) {
-    while (bp < book_time.length && book_time[bp][0] <= time) {
-      book.push(book_time[bp]);
-      bp++;
-    }
+  const end = Math.max(...book_time.map((el) => el[1]));
+  const sumArr = new Array(end + 11).fill(0);
 
-    book = book.filter(([s, e]) => e > time);
-
-    max = Math.max(book.length, max);
+  for (let [s, e] of book_time) {
+    sumArr[s]++;
+    sumArr[e + 10]--;
   }
+
+  let pre = 0;
+  let max = 1;
+  sumArr.forEach((num) => {
+    pre += num;
+    max = Math.max(pre, max);
+  });
 
   return max;
 }
-// 누적합 풀이
-const solution2 = (book_time) => {
-  const book = Array.from({ length: timeToMin("24:10") }, () => 0);
-  book_time.forEach((info, i) => {
-    const [start, out] = info;
-    timeToMin(start);
-    const end = timeToMin(out) + 9;
-    for (start; start <= end; start++) {
-      book[start]++;
-    }
-  });
-  return Max.max(...book);
-};
-
-solution([
-  ["15:00", "17:00"],
-  ["16:40", "18:20"],
-  ["14:20", "15:20"],
-  ["14:10", "19:20"],
-  ["18:20", "21:20"],
-]);
