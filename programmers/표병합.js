@@ -1,123 +1,91 @@
-let length = 51;
+const n = 51;
+// [51*51][2]  [idx][idx,null] =>  [인덱스][부모idx,저장 데이터];
+let board = Array.from({ length: n * n }, (_, i) => [i, null]);
 
-let board = Array.from({ length }, () => Array.from({ length }, () => null));
+//2차원 배열을 1차원으로 표현했을 때의 idx를 리턴
+const conversion1D = (r, c) => r * (n - 1) + c;
 
-let parent = Array.from({ length }, (_, row) =>
-  Array.from({ length }, (_, col) => [row, col])
-);
-
-const getParent = (row, col) => {
-  let [nr, nc] = parent[row][col];
-  if (nr === row && nc === col) return [nr, nc];
-  else return getParent(nr, nc);
+const getP = (x1) => {
+  if (x1 === board[x1][0]) return x1;
+  else board[x1][0] = getP(board[x1][0]);
+  return board[x1][0];
 };
 
-const update = (row, col, value) => {
-  [nr, nc] = getParent(row, col);
-  updateAllValue(nr, nc, value);
-};
-const change = (oldWord, newWord) => {
-  for (let row = 1; row < length; row++) {
-    for (let col = 1; col < length; col++) {
-      if (board[row][col] === oldWord) board[row][col] = newWord;
-    }
+const merge = (x1, x2, value) => {
+  const p1 = getP(x1);
+  const p2 = getP(x2);
+  if (p1 > p2) {
+    board[p1] = [p2, value];
+    board[p2] = [p2, value];
+  } else {
+    board[p2] = [p1, value];
+    board[p1] = [p1, value];
   }
 };
 
-const updateAllParent = (nr1, nc1, nr2, nc2) => {
-  for (let i = 1; i < length; i++) {
-    for (let j = 1; j < length; j++) {
-      const [curR, curC] = parent[i][j];
-      if (curR === nr1 && curC === nc1) {
-        parent[i][j] = [nr2, nc2];
-      }
-    }
+const unMerge = (p1) => {
+  let len = n * n;
+  let unMergeArr = [];
+  for (let x = 0; x < len; x++) {
+    const p = getP(x);
+    if (p === p1) unMergeArr.push(x);
   }
+  unMergeArr.forEach((i) => (board[i] = [i, null]));
 };
 
-const updateAllValue = (nr1, nc1, value) => {
-  for (let i = 1; i < length; i++) {
-    for (let j = 1; j < length; j++) {
-      const [curR, curC] = parent[i][j];
-      if (curR === nr1 && curC === nc1) {
-        board[i][j] = value;
-      }
-    }
-  }
-};
-
-const merge = ([r1, c1, r2, c2]) => {
-  const [nr1, nc1] = getParent(r1, c1);
-  const [nr2, nc2] = getParent(r2, c2);
-
-  if (nr1 === nr2 && nc1 === nc2) return;
-
-  const value = board[r1][c1] !== null ? board[r1][c1] : board[r2][c2];
-
-  parent[r2][c2] = [nr1, nc1];
-
-  updateAllParent(nr2, nc2, nr1, nc1);
-  updateAllValue(nr1, nc1, value);
-};
-
-const unMerge = ([row, col]) => {
-  let [pr, pc] = getParent(row, col);
-  let value = board[pr][pc];
-
-  for (let i = 1; i < length; i++) {
-    for (let j = 1; j < length; j++) {
-      let [curR, curC] = getParent(i, j);
-      if (curR == pr && curC == pc) {
-        parent[i][j] = [i, j];
-        board[i][j] = null;
-      }
-    }
-  }
-  board[row][col] = value;
+const update = (value1, value2) => {
+  board.forEach((el, i) => {
+    if (el[1] === value1) board[i][1] = value2;
+  });
 };
 
 function solution(commands) {
-  let answer = [];
+  let result = [];
+  let r1, r2, c1, c2, p1, p2, x1, x2, value1, value2, tmp;
 
-  for (let command of commands) {
-    command = command.split(" ");
-    if (command[0] === "UPDATE") {
-      if (command.length === 4) update(+command[1], +command[2], command[3]);
-      if (command.length !== 4) change(command[1], command[2]);
-    }
-    if (command[0] === "MERGE") merge(command.slice(1).map(Number));
-    if (command[0] === "UNMERGE") unMerge(command.slice(1).map(Number));
-    if (command[0] === "PRINT") {
-      [row, col] = command.slice(1).map(Number);
-      const [pr, pc] = getParent(row, col);
-      const value = board[pr][pc];
-      value === null ? answer.push("EMPTY") : answer.push(value);
-    }
-  }
+  commands.forEach((command) => {
+    const [com, ...infos] = command.split(" ");
+    switch (com) {
+      case "UPDATE":
+        if (infos.length === 3) {
+          [r1, c1, value1] = [+infos[0], +infos[1], infos[2]];
+          x1 = conversion1D(r1, c1);
+          p1 = getP(x1);
+          board[p1][1] = value1;
+        } else {
+          [value1, value2] = infos;
+          update(value1, value2);
+        }
+        break;
+      case "MERGE":
+        [r1, c1, r2, c2] = infos.map(Number);
+        x1 = conversion1D(r1, c1);
+        x2 = conversion1D(r2, c2);
+        p1 = getP(x1);
+        p2 = getP(x2);
+        if (p1 != p2) {
+          value1 = board[p1][1];
+          value2 = board[p2][1];
+          tmp = value1 || value2;
+          merge(p1, p2, tmp);
+        }
 
-  return answer;
+        break;
+      case "UNMERGE":
+        [r1, c1] = infos.map(Number);
+        x1 = conversion1D(r1, c1);
+        p1 = getP(x1);
+        value1 = board[p1][1];
+        unMerge(p1); // p1을 바라보던 모든 셀들을 자기 자신의 [idx,null]로 바꿈
+        board[x1] = [x1, value1];
+        break;
+      case "PRINT":
+        [r1, c1] = infos.map(Number);
+        x1 = conversion1D(r1, c1);
+        p1 = getP(x1);
+        result.push(board[p1][1] || "EMPTY");
+        break;
+    }
+  });
+  return result;
 }
-
-console.log(
-  solution([
-    "UPDATE 1 1 menu",
-    "UPDATE 1 2 category",
-    "UPDATE 2 1 bibimbap",
-    "UPDATE 2 2 korean",
-    "UPDATE 2 3 rice",
-    "UPDATE 3 1 ramyeon",
-    "UPDATE 3 2 korean",
-    "UPDATE 3 3 noodle",
-    "UPDATE 3 4 instant",
-    "UPDATE 4 1 pasta",
-    "UPDATE 4 2 italian",
-    "UPDATE 4 3 noodle",
-    "MERGE 1 2 1 3",
-    "MERGE 1 3 1 4",
-    "UPDATE korean hansik",
-    "UPDATE 1 3 group",
-    "UNMERGE 1 4",
-    "PRINT 1 3",
-    "PRINT 1 4",
-  ])
-);
