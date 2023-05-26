@@ -1,43 +1,66 @@
-function solution(expression) {
-  let answer = -Infinity;
-  const operators = ["+-*", "+*-", "*-+", "*+-", "-*+", "-+*"];
-
-  const expressArr = [];
-  let tmp = [];
-  for (let char of expression) {
-    if ("+-*".includes(char)) {
-      expressArr.push(tmp.join(""), char);
-      tmp = [];
-    } else tmp.push(char);
+const expParser = (expression) => {
+  const result = [];
+  let stack = "";
+  for (let i = 0; i < expression.length; i++) {
+    const cur = expression[i];
+    //지금 값이 연산자에 포함되면 stack에 저장했던 값과 현재 연사자를 배열에 저장하고
+    //stack은 초기화한다.
+    if (["+", "-", "*"].includes(cur)) {
+      result.push(stack);
+      result.push(cur);
+      stack = "";
+    } else stack += cur;
   }
-  expressArr.push(tmp.join(""));
-
-  operators.forEach((operator) => {
-    let max = calc(operator, expressArr);
-    answer = max > answer ? max : answer;
-  });
-  return answer;
-}
-
-const calc = (operator, expressArr) => {
-  let max = -Infinity;
-  operator.split("").forEach((oper) => {
-    while (expressArr.includes(oper)) {
-      let index = expressArr.indexOf(oper);
-      const value = eval(expressArr.slice(index - 1, index + 2).join(""));
-      expressArr = [
-        ...(expressArr.slice(0, index - 1) || []),
-        value,
-        ...(expressArr.slice(index + 2) || []),
-      ];
-    }
-  });
-  max = Math.max(max, Math.abs(expressArr[0]));
-  return max;
+  //stack에 남아있는 숫자 포함
+  result.push(stack);
+  return result;
 };
 
-console.log(
-  solution(
-    "177-661*999*99-133+221+334+555-166-144-551-166*166-166*166-133*88*55-11*4+55*888*454*12+11-66+444*99"
-  )
-);
+//백트래킹 돌면서 연사자를 뽑을 순서르 정한다.
+const dfs = (v, permutations, opers) => {
+  if (opers.length === 3) {
+    permutations.push(opers);
+    return;
+  }
+  for (let i = 0; i < 3; i++) {
+    if (v[i]) continue;
+    v[i] = true;
+    dfs(v, permutations, opers.concat(i));
+    v[i] = false;
+  }
+};
+
+const calAbsolute = (expArr, per) => {
+  const opers = "+-*";
+  for (let i = 0; i < 3; i++) {
+    const pickOper = opers[per[i]];
+    let tmp = [];
+    for (let j = 0; j < expArr.length; j++) {
+      if (expArr[j] === pickOper) {
+        tmp.push(eval(tmp.pop() + pickOper + expArr[j + 1]));
+        j++;
+      } else tmp.push(expArr[j]);
+    }
+    expArr = tmp;
+  }
+
+  return Math.abs(expArr[0]);
+};
+
+function solution(expression) {
+  let result = 0;
+
+  const expArr = expParser(expression);
+  const v = Array.from({ length: 3 }, () => false);
+  const permutations = [];
+
+  dfs(v, permutations, []); // permutations 배열에 순열 채우기
+
+  for (const per of permutations) {
+    result = Math.max(result, calAbsolute(expArr, per));
+  }
+
+  return result;
+}
+
+console.log(solution("100-200*300-500+20"));
