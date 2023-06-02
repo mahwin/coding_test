@@ -1,33 +1,37 @@
-function solution(files) {
-  const parser = (str) => {
-    let numIdx = [];
-    let head, number;
+const isNumeric = (n) => Number.isInteger(+n) && n != " ";
 
-    for (let idx = 0; idx < str.length; idx++) {
-      let ch = str[idx];
-      if (!!Number(ch) || ch === "0") {
-        numIdx.push(idx);
-      } else if (numIdx.length !== 0) {
-        break;
+const parser = (info) => {
+  let result = [];
+  let [numInit, numEnd] = [0, info.length];
+  for (let i = 0; i < info.length; i++) {
+    if (isNumeric(info[i])) {
+      numInit = i;
+      for (let j = i + 1; j < info.length; j++) {
+        if (!isNumeric(info[j])) {
+          numEnd = j;
+          break;
+        }
       }
+      break;
     }
+  }
+  return [
+    info.slice(0, numInit).toLowerCase(),
+    Number(info.slice(numInit, numEnd)),
+  ];
+};
 
-    head = str.slice(0, numIdx[0]).toLowerCase();
-    number = Number(str.slice(numIdx[0], numIdx[numIdx.length - 1] + 1));
-    console.log(number);
-    return [head, number];
-  };
-
+function solution(files) {
   files.sort((a, b) => {
-    let [headA, numberA] = parser(a);
-    let [headB, numberB] = parser(b);
-    console.log(numberA, numberB);
-    if (headA > headB) return 1;
-    if (headA < headB) return -1;
-    if (numberA > numberB) return 1;
-    if (numberA < numberB) return -1;
+    const [aH, aN] = parser(a);
+    const [bH, bN] = parser(b);
+
+    if (aH === bH) {
+      return aN - bN;
+    } else {
+      if (aH < bH) return -1;
+    }
   });
+
   return files;
 }
-
-console.log(solution(["a 123-123", " b 123-44 ", " 3", " 6"]));
