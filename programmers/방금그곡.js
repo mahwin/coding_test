@@ -1,54 +1,48 @@
-function solution(m, musicinfos) {
-  let answer = "";
-  const minCalCulator = (start, end) => {
-    const [endH, endM] = end.split(":").map(Number);
-    const [startH, startM] = start.split(":").map(Number);
-
-    return (endH - startH) * 60 + endM - startM;
-  };
-
-  const songSplit = (song) => {
-    let songArr = [];
-    for (let s of song) {
-      if (s !== "#") songArr.push(s);
-      else songArr[songArr.length - 1] = songArr[songArr.length - 1] + "#";
-    }
-    return songArr;
-  };
-
-  let possibleMusicInfo = [];
-
-  musicinfos.forEach((musicInfo) => {
-    let [start, end, name, song] = musicInfo.split(",");
-    const playtime = minCalCulator(start, end);
-    songArr = songSplit(song);
-    let index = 0;
-    let totalSong = [];
-    while (playtime !== index) {
-      totalSong.push(songArr[index % songArr.length]);
-      index++;
-    }
-
-    mLength = songSplit(m).length;
-    for (let i = 0; i <= totalSong.length - mLength; i++) {
-      if (m === totalSong.slice(i, i + mLength).join("")) {
-        possibleMusicInfo.push([name, playtime]);
-        break;
-      }
-    }
-  });
-
-  if (possibleMusicInfo.length === 0) return "(None)";
-  if (possibleMusicInfo.length === 1) return possibleMusicInfo[0][0];
-  else {
-    possibleMusicInfo.sort((a, b) => b[1] - a[1]);
-    return possibleMusicInfo[0][0];
-  }
+const diffMin =(s,e)=>{
+  const [sh,sm] = s.split(':').map(Number);
+  const [eh,em] = e.split(':').map(Number);
+  return (eh-sh)*60+ em-sm;
 }
 
-console.log(
-  solution("C#BCC#BCC#BCC#B", [
-    "03:00,03:30,FOO,CC#B",
-    "04:00,04:08,BAR,CC#BCC#BCC#B",
-  ])
-);
+const parser = (music)=>{
+  music = music.split('');
+  for (let i=0; i<music.length; i++){
+      if(music[i]=='#'){
+          music[i-1]+='#';
+      }
+  }
+  return music.filter((el)=>el!=='#');
+}
+
+function solution(m, musicinfos) {
+  let result = [];
+  
+  m = parser(m);  
+  musicinfos.forEach((musicinfo,i)=>{
+      let [s,e,title,music] = musicinfo.split(',');
+      const duration = diffMin(s,e);
+      
+      let cIdx = 0; // 라디오에서 나오는 노래
+      let mIdx = 0; // 찾고자하는 노래
+      music = parser(music);            
+      const clen = music.length;
+      
+      for (let i=0; i<duration; i++){            
+          if(music[cIdx] !== m[mIdx]) mIdx=0;
+          else mIdx++;
+          
+          if(mIdx===m.length) {
+              result.push([title,duration,i])
+              break
+          };
+          
+          if(mIdx==0 && music[cIdx] == m[mIdx]) mIdx++;
+          
+          cIdx = cIdx + 1 >= clen ? 0 : cIdx+1;                 
+      }                     
+  })
+  result.sort((a,b)=> {
+      if(a[1]==b[1]) return a[2]-b[2]
+      else return b[1]-a[1];
+  });
+  return result.length ===0 ? "(None)" : result[0][0];
