@@ -1,51 +1,60 @@
+const discount = [10, 20, 30, 40];
+
 function solution(users, emoticons) {
-  // 최우선 가입자 최대화!
-  // 다음으로 목표액 최대화!
-
-  const n = emoticons.length;
-  const combis = [];
   let result = [0, 0];
+  let emoLen = emoticons.length;
+  let disTmp = [];
 
-  const userSignOrBuy = (discountArr) => {
-    let signAndBuy = [0, 0];
+  const cal = () => {
+    let result = [0, 0]; //plus가입한 사람 수, 총 비용
     for (let i = 0; i < users.length; i++) {
-      let price = 0;
-      const [wantDiscount, threshold] = users[i];
-
-      for (let j = 0; j < emoticons.length; j++) {
-        if (discountArr[j] >= wantDiscount) {
-          price += ((100 - discountArr[j]) * emoticons[j]) / 100;
+      let money = 0;
+      let isSign = false;
+      for (let j = 0; j < emoLen; j++) {
+        if (users[i][0] <= disTmp[j]) {
+          money += (emoticons[j] * (100 - disTmp[j])) / 100;
+        }
+        if (users[i][1] <= money) {
+          isSign = true;
+          break;
         }
       }
-      if (price >= threshold) signAndBuy[0]++;
-      else signAndBuy[1] += price;
+      if (isSign) result[0]++;
+      else result[1] += money;
     }
-    return signAndBuy;
+
+    return result;
   };
 
-  const dfs = (discountArr) => {
-    if (discountArr.length === n) {
-      const [sign, sum] = userSignOrBuy(discountArr);
-      if (result[0] < sign) {
-        result = [sign, sum];
-      } else if (result[0] === sign && result[1] < sum) {
-        result[1] = sum;
+  const dfs = (node) => {
+    if (emoLen === disTmp.length) {
+      const [plusP, money] = cal();
+
+      if (result[0] < plusP) {
+        result = [plusP, money];
+      } else if (result[0] == plusP && result[1] < money) {
+        result = [plusP, money];
       }
       return;
     }
-    dfs([...discountArr, 10]);
-    dfs([...discountArr, 20]);
-    dfs([...discountArr, 30]);
-    dfs([...discountArr, 40]);
+    if (node === emoLen) return;
+
+    for (const d of discount) {
+      disTmp.push(d);
+      dfs(node + 1);
+      disTmp.pop();
+    }
   };
-  dfs([]);
+  dfs(0);
   return result;
 }
 
-solution(
-  [
-    [40, 10000],
-    [25, 10000],
-  ],
-  [7000, 9000]
+console.log(
+  solution(
+    [
+      [40, 10000],
+      [25, 10000],
+    ],
+    [7000, 9000]
+  )
 );
