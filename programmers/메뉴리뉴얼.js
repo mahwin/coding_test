@@ -1,53 +1,56 @@
-function combination(elements, pick) {
-  if (pick === 1) return elements.map((elem) => [elem]);
-  const result = [];
-  elements.forEach((fixedEl, index) => {
-    const tmpCombination = combination(elements.slice(index + 1), pick - 1);
-    tmpCombination.forEach((el) => result.push([fixedEl].concat(el)));
-  });
-  return result;
-}
-
 function solution(orders, course) {
-  let orderCounter = {};
-  let orderArr = Array.from({ length: 20 }, (_, i) => i); //조합용 index Array
+  const combis = Array.from({ length: 21 }, () =>
+    Array.from({ length: 11 }, () => [])
+  );
 
-  orders = orders.map((food) => food.split("").sort().join(""));
-  console.log(orders);
+  let tmp = [];
 
-  orders.forEach((order) => {
-    let foodLength = order.length;
-    let pickArr = course.filter((c) => c <= foodLength);
-    pickArr.forEach((pick) => {
-      let combis = combination(orderArr.slice(0, foodLength), pick);
-      combis.forEach((combi) => {
-        let key = "";
-        combi.forEach((c) => {
-          key += order[c];
-        });
-        orderCounter[key] = orderCounter[key] ? orderCounter[key] + 1 : 1;
-      });
-    });
-  });
-  let courseObj = {};
+  const dfs = (len, pick, node) => {
+    if (pick === tmp.length) {
+      combis[len][pick].push([...tmp]);
+      return;
+    }
+    for (let i = node; i < len; i++) {
+      tmp.push(i);
+      dfs(len, pick, i + 1);
+      tmp.pop();
+    }
+  };
+  const menuObj = {};
+  course.forEach((c) => (menuObj[c] = {}));
 
-  Object.keys(orderCounter).forEach((key) => {
-    if (course.includes(key.length) && orderCounter[key] !== 1) {
-      counter = orderCounter[key];
-      if (courseObj[key.length]) {
-        if (counter === courseObj[key.length][0]) {
-          courseObj[key.length].push(key);
-        } else if (counter > courseObj[key.length][0]) {
-          courseObj[key.length] = [counter, key];
+  for (let i = 0; i < orders.length; i++) {
+    const menu = orders[i].split("").sort().join("");
+    for (let j = 0; j < course.length; j++) {
+      const pick = course[j];
+
+      if (!combis[menu.length][pick].length) {
+        tmp = [];
+        dfs(menu.length, pick, 0);
+      }
+
+      const combinations = combis[menu.length][pick];
+
+      for (const combination of combinations) {
+        let menuKey = "";
+        for (const c of combination) {
+          menuKey += menu[c];
         }
-      } else {
-        courseObj[key.length] = [counter, key];
+        menuObj[pick][menuKey] = menuObj[pick][menuKey]
+          ? menuObj[pick][menuKey] + 1
+          : 1;
       }
     }
+  }
+  let result = [];
+  course.forEach((c) => {
+    const cnt = Math.max(...Object.values(menuObj[c]));
+    if (cnt >= 2) {
+      Object.keys(menuObj[c]).forEach((menu) => {
+        if (menuObj[c][menu] === cnt) result.push(menu);
+      });
+    }
   });
-  let answer = [];
-  Object.values(courseObj).forEach((arr) => answer.push(...arr.slice(1)));
-  return answer.sort();
-}
 
-console.log(solution(["XYZ", "XWY", "WXA"], [2, 3, 4]));
+  return result.sort();
+}
