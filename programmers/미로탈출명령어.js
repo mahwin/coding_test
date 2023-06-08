@@ -1,51 +1,38 @@
-function solution(n, m, x, y, r, c, k) {
-  //n,m 격자 크기 x,y 현 위치 r,c 타켓 k 이동횟수
-  // d l r u
+const dirObj = { d: [1, 0], l: [0, -1], r: [0, 1], u: [-1, 0] }; //d l r u 사전 순
 
-  const calDis = (distance) => {
-    return Math.abs(distance[0]) + Math.abs(distance[1]);
-  };
-
-  const isValid = (x, y) => {
-    if (x > 0 && x <= n && y > 0 && y <= m) return true;
-    else return false;
-  };
-
-  let answer = "";
+const canGo = (x, y, r, c, k) => {
   let cnt = Math.abs(r - x) + Math.abs(c - y);
-  if (cnt % 2 !== k % 2 || cnt > k) return "impossible";
-  console.log(r, c);
-  console.log(x, y);
-  while (k) {
-    let remain = k - calDis([r - x, c - y]);
-    console.log(remain, k);
-    if (remain > 1) {
-      if (isValid(x + 1, y)) {
-        answer += "d";
-        x++;
-      } else if (isValid(x, y - 1)) {
-        answer += "l";
-        y--;
-      } else if (isValid(x, y + 1)) {
-        answer += "r";
-        y++;
-      } else {
-        answer += "u";
-        x--;
+  if (cnt % 2 !== k % 2 || cnt > k) return false;
+  else return true;
+};
+
+function solution(n, m, x, y, r, c, k) {
+  if (!canGo(x, y, r, c, k)) return "impossible";
+
+  const isValid = (row, col) => {
+    // 경계 체크
+    if (row >= n || col >= m || row < 0 || col < 0) return false;
+    return true;
+  };
+  let possible = "";
+  const tmp = [];
+
+  const dfs = (row, col, cnt) => {
+    if (possible.length) return;
+
+    if (cnt === k && row === r - 1 && col === c - 1) possible = tmp.join("");
+
+    for (const d of Object.keys(dirObj)) {
+      const nr = row + dirObj[d][0];
+      const nc = col + dirObj[d][1];
+      const dist = Math.abs(r - 1 - nr) + Math.abs(c - 1 - nc);
+      if (isValid(nr, nc) && dist <= k - cnt) {
+        tmp.push(d);
+        dfs(nr, nc, cnt + 1);
+        tmp.pop();
       }
     }
-    if (remain === 0) {
-      let [needX, needY] = [x - r, y - c];
-      if (needX < 0) answer += "d".repeat(-needX);
-      if (needY > 0) answer += "l".repeat(needY);
-      if (needY < 0) answer += "r".repeat(-needY);
-      if (needX > 0) answer += "u".repeat(needX);
-
-      break;
-    }
-    k--;
-  }
-  return answer;
+  };
+  dfs(x - 1, y - 1, 0);
+  return possible;
 }
-
-console.log(solution(3, 4, 2, 3, 3, 1, 5));
