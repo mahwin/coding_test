@@ -1,32 +1,32 @@
+// n 0 비트열 '1'                              4**0
+// n 1 비트열 '11011'                          4**1
+// n 2 비트열 '1101111011000001101111011'      4**2
+//                                           4**3
+
 function solution(n, l, r) {
-  let kanto = "11011";
-
-  const oneCounter = (index) => {
-    let answer = 0;
-    if (index <= 5)
-      return kanto
-        .slice(0, index)
-        .split("")
-        .filter((num) => num === "1").length;
-
-    let basement = 1;
-    while (5 ** (basement + 1) < index) {
-      basement++;
+  const dfs = (num) => {
+    if (num <= 5) {
+      if (num >= 3) return num - 1;
+      else return num;
+    }
+    let gen = 1;
+    while (5 ** (gen + 1) < num) {
+      gen++;
     }
 
-    let quotient = Math.floor(index / 5 ** basement);
-    let remainder = index % 5 ** basement;
+    const q = Math.floor(num / 5 ** gen);
+    const remain = num % 5 ** gen;
 
-    answer += quotient * 4 ** basement;
-    if (quotient >= 3) answer -= 4 ** basement;
-    if (quotient === 2) return answer;
-    else return answer + oneCounter(remainder);
+    let result = 0;
+
+    if (q >= 3) result += (q - 1) * 4 ** gen;
+    else result += q * 4 ** gen;
+
+    if (q === 2) {
+      return result;
+    } else {
+      return result + dfs(remain);
+    }
   };
-
-  return oneCounter(r) - oneCounter(l - 1);
+  return dfs(r) - dfs(l - 1);
 }
-
-console.log(solution(4, 27, 68));
-
-// 26 => 17
-// 68 => 32
