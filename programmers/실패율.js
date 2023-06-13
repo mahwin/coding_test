@@ -1,30 +1,21 @@
 function solution(N, stages) {
-  let answer = Array.from({ length: N + 1 }, () => [0, 0]);
-  for (let stage of stages) {
-    for (let i = 1; i <= N; i++) {
-      if (stage > i) {
-        answer[i][0] += 1;
-        answer[i][1] += 1;
-      } else if (stage === i) answer[i][1] += 1;
-    }
+  const countArr = Array.from({ length: N + 2 }, () => 0);
+  const failRate = Array.from({ length: N + 2 }, (_, i) => [0, i]);
+  stages.forEach((stage) => countArr[stage]++);
+
+  let people = countArr[N + 1];
+  for (let i = N; i >= 1; i--) {
+    people += countArr[i];
+    // people가 0이면 NaN이 나옴 => 아무도 시도 안 했으면 실패율 0
+    failRate[i][0] = Number.isNaN(countArr[i] / people)
+      ? 0
+      : countArr[i] / people;
   }
-
-  answer = answer.map(([success, trial]) => {
-    if (trial === 0) return 0;
-    fail = trial - success;
-    return fail / trial;
-  });
-
-  const result = [];
-  answer.shift();
-
-  for (let target of [...new Set([...answer])].sort((a, b) => b - a)) {
-    for (let i = 0; i < answer.length; i++) {
-      if (target === answer[i]) result.push(i + 1);
-    }
-  }
-
-  return result;
+  return failRate
+    .slice(1, N + 1)
+    .sort((a, b) => {
+      if (a[0] == b[0]) return a[1] - b[1];
+      else return b[0] - a[0];
+    })
+    .map((el) => el[1]);
 }
-
-solution(4, [1, 1, 1, 1, 1, 1, 1, 1]);
