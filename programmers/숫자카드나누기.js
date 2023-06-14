@@ -1,57 +1,40 @@
-const dividers = (num) => {
-  let divi = [];
-  for (let i = 1; i <= Math.ceil(Math.sqrt(num)); i++) {
-    if (num % i === 0) {
-      divi.push(i);
-      divi.push(num / i);
-    }
+const calDivider = (num) => {
+  let nums = [];
+  for (let i = 1; i <= Math.sqrt(num); i++) {
+    if (num % i === 0) nums.push(i, num / i);
   }
-  return divi;
+  return nums.sort((a, b) => b - a);
 };
 
-const CD = (arr, divis) => {
-  let commons = [];
-  for (let d of divis) {
-    let flag = true;
-    for (let num of arr) {
-      if (num % d !== 0) flag = false;
+const cal = (nums, arr1, arr2) => {
+  for (const num of nums) {
+    let flag1 = true;
+    for (const num1 of arr1) {
+      if (num1 % num !== 0) {
+        flag1 = false;
+        break;
+      }
     }
-    if (flag) commons.push(d);
-  }
-  return commons;
-};
-
-const NCD = (arr, divis) => {
-  let max = 0;
-  for (let d of divis) {
-    let flag = true;
-    for (let num of arr) {
-      if (num % d === 0) flag = false;
-    }
-    if (flag) {
-      max = Math.max(max, d);
+    if (flag1) {
+      let flagB = true;
+      for (const num2 of arr2) {
+        if (num2 % num === 0) {
+          flagB = false;
+          break;
+        }
+      }
+      if (flagB) return num;
     }
   }
-  return max;
+  return 0;
 };
 
-let findMax = (arr) => {
-  let max = 0;
-  for (let num of arr) {
-    if (max < num) max = num;
-  }
-  return max;
-};
-
-function solution1(arrayA, arrayB) {
-  const maxANum = findMax(arrayA);
-  const maxBNum = findMax(arrayB);
-
-  const divisA = dividers(maxANum);
-  const divisB = dividers(maxBNum);
-  const commonsA = CD(arrayA, divisA);
-  const commonsB = CD(arrayB, divisB);
-  const a = NCD(arrayA, commonsB);
-  const b = NCD(arrayB, commonsA);
-  return a > b ? a : b;
+function solution(arrayA, arrayB) {
+  const setA = new Set(arrayA);
+  const setB = new Set(arrayB);
+  const sortedA = [...setA].sort((a, b) => b - a);
+  const sortedB = [...setB].sort((a, b) => b - a);
+  const numsA = calDivider(sortedA.at(-1));
+  const numsB = calDivider(sortedB.at(-1));
+  return Math.max(cal(numsA, sortedA, sortedB), cal(numsB, sortedB, sortedA));
 }
