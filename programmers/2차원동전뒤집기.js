@@ -1,74 +1,62 @@
-const getCombinations = (arr, pick) => {
-  if (pick === 1) return arr.map((el) => [el]);
-  const result = [];
-
-  arr.forEach((fixed, index) => {
-    const tmp = getCombinations(arr.slice(index + 1), pick - 1);
-    tmp.forEach((el) => result.push([fixed, ...el]));
-  });
-  return result;
+const flipCol = (board, target, rowLen, colLen) => {
+  // col 방향으로 체크하며 target과 다르다면 뒤집기.
+  let cnt = 0;
+  let cols = new Set();
+  for (let r = 0; r < rowLen; r++) {
+    for (let c = 0; c < colLen; c++) {
+      if (board[r][c] !== target[r][c]) cols.add(c);
+    }
+  }
+  for (const col of [...cols]) {
+    for (let r = 0; r < rowLen; r++) {
+      board[r][col] = board[r][col] === 1 ? 0 : 1;
+    }
+  }
+  return cols.size;
 };
 
-const reverseRowOrCol = (index, rowOrCol, board) => {
-  if (rowOrCol === "row") {
-    for (let col = 0; col < board[0].length; col++) {
-      board[index][col] = board[index][col] === 1 ? 0 : 1;
+const flipRows = (board, rows, colLen) => {
+  // dfs로 뽑은 조합에 따라 row방향으로 뒤집기.
+  const copy = board.map((el) => [...el]);
+  rows.forEach((row) => {
+    for (let i = 0; i < colLen; i++) {
+      copy[row][i] = copy[row][i] === 0 ? 1 : 0;
     }
+  });
+  return copy;
+};
+
+const isSame = (arr1, arr2, rowLen) => {
+  for (let i = 0; i < rowLen; i++) {
+    if (arr1[i].join("") !== arr2[i].join("")) return false;
   }
-  if (rowOrCol === "col") {
-    for (let row = 0; row < board.length; row++) {
-      board[row][index] = board[row][index] === 1 ? 0 : 1;
-    }
-  }
+  return true;
 };
 
 function solution(beginning, target) {
-  let answer = Infinity;
-  let combis = [];
-  for (let pick = 1; pick <= target.length; pick++) {
-    combis.push(
-      getCombinations(
-        Array.from({ length: beginning[0].length }, (_, i) => i),
-        pick
-      )
-    );
-  }
-  let copyBoard;
-  for (const combi of combis) {
-    for (const cs of combi) {
-      copyBoard = beginning.map((el) => [...el]);
-      for (const c of cs) {
-        reverseRowOrCol(c, "col", copyBoard);
-      }
+  const rowLen = beginning.length;
+  const colLen = beginning[0].length;
+  let result = Infinity;
 
-      let rowChange = 0;
+  const rows = [];
+  const v = Array.from({ length: rowLen }, () => false);
 
-      for (let row = 0; row < beginning.length; row++) {
-        if (
-          (parseInt(copyBoard[row].join(""), 2) &
-            parseInt(target[row].join(""), 2)) ===
-          0
-        ) {
-          reverseRowOrCol(row, "row", copyBoard);
-          rowChange++;
-        }
-      }
-
-      let flag = true;
-      for (let row = 0; row < target.length; row++) {
-        if (copyBoard[row].join("") !== target[row].join("")) flag = false;
-      }
-      if (flag) {
-        answer = Math.min(cs.length + rowChange, answer);
-      }
+  const dfs = (node) => {
+    const filpBoard = flipRows(beginning, rows, colLen);
+    const cnt = flipCol(filpBoard, target, rowLen, colLen);
+    if (isSame(filpBoard, target, rowLen)) {
+      result = Math.min(result, rows.length + cnt);
     }
-  }
-  if (beginning.length === 1) {
-    if (beginning[0][0] === target[0][0]) return 0;
-    else return 1;
-  }
-  if (answer === Infinity) return -1;
-  else return answer;
-}
 
-console.log(solution([[0]], [[0]]));
+    for (let i = node; i < rowLen; i++) {
+      if (v[i]) continue;
+      v[i] = true;
+      rows.push(i);
+      dfs(i + 1);
+      v[i] = false;
+      rows.pop();
+    }
+  };
+  dfs(0);
+  return result === Infinity ? -1 : result;
+}
