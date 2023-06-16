@@ -1,56 +1,33 @@
-const subCalculator = (inTime, outTime) => {
-  let [H1, M1] = inTime.split(":").map(Number);
-  let [H2, M2] = outTime.split(":").map(Number);
-  return (H2 - H1) * 60 + M2 - M1;
+const timeToMin = (time) => {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
 };
 
-const costCalculator = (min, fees) => {
-  const [baseTime, baseFee, addTime, addFee] = fees;
-  if (min <= baseTime) return baseFee;
-  return Math.ceil((min - baseTime) / addTime) * addFee + baseFee;
+const getPee = (fees, time) => {
+  //기본 시간 이하면 기본 요금, 넘는 다면 기본 여금 + 단위 시간 금액
+  if (time <= fees[0]) return fees[1];
+  return fees[1] + Math.ceil((time - fees[0]) / fees[2]) * fees[3];
 };
 
 function solution(fees, records) {
-  let answer = [];
-  let carNumber = new Set();
-  let recordObj = {};
-  records.forEach((record) => {
-    const [time, number, _] = record.split(" ");
-    carNumber.has(number)
-      ? recordObj[number].push(time)
-      : (recordObj[number] = [time]);
-    carNumber.add(number);
-  });
-
-  let sortCarNumber = Object.keys(recordObj).sort((a, b) => a - b);
-
-  sortCarNumber.forEach((number) => {
-    let times = recordObj[number];
-    times.length % 2 !== 0 ? times.push("23:59") : null;
-    let parkTime = 0;
-    while (times.length) {
-      let inTime = times.shift();
-      let outTime = times.shift();
-      parkTime += subCalculator(inTime, outTime);
+  const accTime = {}; // key 차량 : value 누적 주차 시간
+  const inCar = new Map(); // key 차량 : 들어온 시간
+  records.forEach((el) => {
+    const [time, car, inOrOut] = el.split(" ");
+    if (inOrOut === "IN") inCar.set(car, timeToMin(time));
+    else {
+      const diffTime = timeToMin(time) - inCar.get(car);
+      accTime[car] = accTime[car] ? accTime[car] + diffTime : diffTime;
+      inCar.delete(car);
     }
-
-    answer.push(costCalculator(parkTime, fees));
   });
-
-  return answer;
+  // 출차 기록이 없는 차량
+  const MAX_TIME = "23:59";
+  for (const [car, time] of inCar) {
+    const diff = timeToMin(MAX_TIME) - time;
+    accTime[car] = accTime[car] ? accTime[car] + diff : diff;
+  }
+  return Object.keys(accTime)
+    .sort()
+    .map((el) => getPee(fees, accTime[el]));
 }
-
-solution(
-  [180, 5000, 10, 600],
-  [
-    "05:34 5961 IN",
-    "06:00 0000 IN",
-    "06:34 0000 OUT",
-    "07:59 5961 OUT",
-    "07:59 0148 IN",
-    "18:59 0000 IN",
-    "19:09 0148 OUT",
-    "22:59 5961 IN",
-    "23:00 5961 OUT",
-  ]
-);
