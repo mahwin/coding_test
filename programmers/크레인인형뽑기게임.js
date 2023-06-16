@@ -1,30 +1,34 @@
-function solution1(board, moves) {
-  let answer = 0;
-  let backet = [];
-  let colValues = Array.from({ length: board.length }, () => []);
-
-  for (let row = 0; row < board.length; row++) {
-    for (let col = 0; col < board.length; col++) {
-      if (0 !== board[row][col]) {
-        colValues[col].push(board[row][col]);
+function solution(board, moves) {
+  const rowLen = board.length;
+  const colLen = board.length;
+  const flipBoard = Array.from({ length: colLen }, () =>
+    Array.from({ length: rowLen })
+  );
+  for (let r = 0; r < rowLen; r++) {
+    for (let c = 0; c < colLen; c++) {
+      flipBoard[c][rowLen - r - 1] = board[r][c];
+    }
+  }
+  let dolls = [];
+  moves.forEach((move) => {
+    for (let i = rowLen - 1; i >= 0; i--) {
+      if (flipBoard[move - 1][i] !== 0) {
+        dolls.push(flipBoard[move - 1][i]);
+        flipBoard[move - 1][i] = 0;
+        break;
       }
     }
-  }
-  moves.forEach((move) => {
-    let colValue = colValues[move - 1];
-    if (colValue.length !== 0) {
-      backet.push(colValue[0]);
-      colValues[move - 1] = colValue.slice(1);
-    }
   });
+  let result = 0;
+  let stack = [];
 
-  for (let i = 0; i < backet.length - 1; i++) {
-    if (backet[i] === backet[i + 1]) {
-      answer += 2;
-      backet = backet.slice(0, i).concat(backet.slice(i + 2));
-      i = -1;
+  for (let i = 0; i < dolls.length; i++) {
+    stack.push(dolls[i]);
+    while (stack.length >= 2 && stack.at(-2) === stack.at(-1)) {
+      result += 2;
+      stack.pop();
+      stack.pop();
     }
   }
-
-  return answer;
+  return result;
 }
