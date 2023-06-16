@@ -1,23 +1,21 @@
-const lastDay = 28;
-
 const dateToDay = (date) => {
   const [y, m, d] = date.split(".").map(Number);
-  return y * lastDay * 12 + m * lastDay + d;
+  return y * 28 * 12 + m * 28 + d;
 };
 
 function solution(today, terms, privacies) {
   const termObj = {};
-  const result = [];
-  terms.forEach((term) => {
-    const [type, duration] = term.split(" ");
-    termObj[type] = duration * lastDay;
+  terms.forEach((el) => {
+    const [type, duration] = el.split(" ");
+    termObj[type] = +duration;
   });
-  const now = dateToDay(today);
 
-  privacies.forEach((privacy, i) => {
-    const [date, type] = privacy.split(" ");
-    const finishedDay = dateToDay(date) + termObj[type];
-    if (finishedDay <= now) result.push(i + 1);
+  const result = [];
+  today = dateToDay(today); // day로 계산.
+
+  privacies.forEach((el, i) => {
+    const [date, type] = el.split(" ");
+    if (today >= dateToDay(date) + termObj[type] * 28) result.push(i + 1);
   });
   return result;
 }
