@@ -1,46 +1,44 @@
+// 균형잡힌 => ( ,)의 갯수가 같다.
+// 올바른 괄호는 갯수도 같고 짝도 맞다.
+
+const checkBalance = (u) => {
+  let stack = [];
+  for (let i = 0; i < u.length; i++) {
+    const cur = u[i];
+    if (!stack.length) {
+      stack.push(cur);
+      continue;
+    }
+    if (stack.at(-1) == "(" && cur === ")") stack.pop();
+    else stack.push(cur);
+  }
+  return stack.length == 0 ? true : false;
+};
+
+const sperateUAndV = (p) => {
+  let cnt = [0, 0];
+  for (let i = 0; i < p.length; i++) {
+    if (p[i] == ")") cnt[0]++;
+    else cnt[1]++;
+    if (cnt[0] === cnt[1]) return [p.slice(0, i + 1), p.slice(i + 1)];
+  }
+};
+const reverse = (p) => {
+  return p
+    .split("")
+    .map((el) => (el === ")" ? "(" : ")"))
+    .join("");
+};
+
+const dfs = (p) => {
+  if (p === "") return p;
+  const [u, v] = sperateUAndV(p);
+  if (checkBalance(u)) return u + dfs(v);
+  else {
+    return "(" + dfs(v) + ")" + reverse(u.slice(1, u.length - 1));
+  }
+};
+
 function solution(p) {
-  let answer = "";
-
-  const correctCheck = (str) => {
-    let count = 0;
-    for (let s of str) {
-      s === "(" ? count++ : count--;
-      if (count < 0) return false;
-    }
-    if (count === 0) return true;
-    else return false;
-  };
-
-  const seperator = (w) => {
-    let count = 0;
-    for (let i = 0; i < w.length; i++) {
-      w[i] === "(" ? count++ : count--;
-      if (count === 0) return [w.slice(0, i + 1), w.slice(i + 1)];
-    }
-  };
-
-  const reverse = (str) => {
-    return str
-      .split("")
-      .map((c) => (c === "(" ? ")" : "("))
-      .join("");
-  };
-
-  const dfs = (w) => {
-    if (w === "") return "";
-    let [u, v] = seperator(w);
-
-    if (correctCheck(u)) {
-      u += dfs(v);
-      return u;
-    } else {
-      let tmp = "(" + dfs(v) + ")";
-
-      tmp += reverse(u.slice(1, u.length - 1));
-      return tmp;
-    }
-  };
-
   return dfs(p);
 }
-console.log(solution("))))(((("));
