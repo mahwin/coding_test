@@ -1,60 +1,75 @@
-const getCombination = (arr, pick) => {
-  if (pick === 1) return arr.map((el) => [el]);
-  const combinations = [];
-  arr.forEach((fixed, index) => {
-    let tmpCombis = getCombination(arr.slice(index + 1), pick - 1);
-    tmpCombis.forEach((el) => combinations.push([fixed].concat(el)));
-  });
-  return combinations;
-};
-const checkUniq = (keyArr) => {
-  for (let i = 0; i < keyArr.length; i++) {
-    let key = keyArr[i];
-    for (let j = i + 1; j < keyArr.length; j++) {
-      if (key === keyArr[j]) return false;
-    }
-  }
-  return true;
-};
-
 function solution(relation) {
-  let answer = 0;
-  let visited = [];
-  let indexArr = Array.from({ length: relation[0].length }, (_, i) => i);
+  const colLen = relation[0].length;
+  const rowLen = relation.length;
 
-  for (let pick = 1; pick <= relation[0].length; pick++) {
-    let combinations = getCombination(indexArr, pick);
-    let checkArr = [];
+  const v = Array.from({ length: colLen }, () => false);
+  const keys = []; // 백트래킹하면서 저장
+  const combis = {}; // key :len value 조합  ex {2 : [[1,2],[2,3]]}
 
-    newCombinations = combinations.forEach((combination) => {
-      checkArr = [];
-      relation.forEach((info) => {
-        let key = "";
-        combination.forEach((index) => (key += info[index]));
-        checkArr.push(key);
-      });
-      if (checkUniq(checkArr)) {
-        visited.push([...combination]);
+  const isMinimal = (keyList, combi) => {
+    for (const arr of keyList) {
+      let cnt = 0;
+      for (const com of combi) {
+        if (arr.includes(com)) cnt++;
       }
-    });
-  }
-  let deleteSet = new Set();
-  for (let i = 0; i < visited.length; i++) {
-    for (let j = i + 1; j < visited.length; j++) {
-      if (visited[i].filter((v) => !visited[j].includes(v)).length === 0) {
-        deleteSet.add(j);
+      if (cnt === arr.length) return false;
+    }
+
+    return true;
+  };
+
+  const isUnique = (combi) => {
+    // 선택한 키 값으로 만든 값이 유니크 한지 체크
+    let set = new Set();
+    for (let r = 0; r < rowLen; r++) {
+      let tmp = "";
+      for (let com of combi) {
+        tmp += relation[r][com];
+      }
+      if (set.has(tmp)) return false;
+      set.add(tmp);
+    }
+    return true;
+  };
+
+  const dfs = (node) => {
+    // 조합 찾기
+    if (keys.length) {
+      const key = keys.length;
+      combis[key] = combis[key] ? combis[key].concat([[...keys]]) : [[...keys]];
+    }
+
+    for (let i = node; i < colLen; i++) {
+      if (!v[i]) {
+        v[i] = true;
+        keys.push(i);
+        dfs(i + 1);
+        v[i] = false;
+        keys.pop();
+      }
+    }
+  };
+  dfs(0);
+
+  let result = 0;
+  const keyList = [];
+  for (let i = 1; i <= colLen; i++) {
+    for (const combi of combis[i]) {
+      if (isMinimal(keyList, combi) && isUnique(combi)) {
+        result++;
+        keyList.push(combi);
       }
     }
   }
-
-  return visited.length - deleteSet.size;
+  return result;
 }
-
 console.log(
   solution([
-    ["a", "1", "aaa", "c", "ng"],
-    ["a", "1", "bbb", "e", "g"],
-    ["c", "1", "aaa", "d", "ng"],
-    ["d", "2", "bbb", "d", "ng"],
+    ["100", "ryan", "music", "2"],
+    ["200", "apeach", "math", "2"],
+    ["300", "tube", "computer", "3"],
+    ["400", "con", "computer", "4"],
+    ["500", "muzi", "music", "3"],
+    ["600", "apeach", "music", "2"],
   ])
 );
