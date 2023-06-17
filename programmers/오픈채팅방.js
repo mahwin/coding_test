@@ -1,25 +1,26 @@
 function solution(record) {
-  let answer = [];
-  let nickName = {};
-  record.forEach((rec) => {
-    const [action, id, name] = rec.split(" ");
-    if (action === "Enter") {
-      nickName[id] = name;
-      answer.push({ id, action: "님이 들어왔습니다." });
-    } else if (action === "Leave")
-      answer.push({ id, action: "님이 나갔습니다." });
-    else nickName[id] = name;
+  const nickname = {};
+  let result = [];
+
+  record.forEach((el) => {
+    const [action, id, nick] = el.split(" ");
+    switch (action) {
+      case "Enter":
+        result.push([action, id]);
+        nickname[id] = nick;
+        break;
+      case "Leave":
+        result.push([action, id]);
+        break;
+      case "Change":
+        nickname[id] = nick;
+        break;
+    }
   });
 
-  return answer.map(({ id, action }) => nickName[id] + action);
+  return result.map((el) => {
+    const [action, id] = el;
+    if (action === "Enter") return `${nickname[id]}님이 들어왔습니다.`;
+    else return `${nickname[id]}님이 나갔습니다.`;
+  });
 }
-
-console.log(
-  solution([
-    "Enter uid1234 Muzi",
-    "Enter uid4567 Prodo",
-    "Leave uid1234",
-    "Enter uid1234 Prodo",
-    "Change uid4567 Ryan",
-  ])
-);
