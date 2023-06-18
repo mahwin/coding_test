@@ -1,26 +1,28 @@
+const checkDot = (str) => {
+  if (str[0] === ".") str = str.slice(1);
+  if (str[str.length - 1] === ".") str = str.slice(0, str.length - 1);
+  return str;
+};
+
 function solution(new_id) {
-  //step1
+  //s1
   new_id = new_id.toLowerCase();
-  //step2
-  new_id = new_id.replaceAll(/[^a-z0-9-_.]/gi, "");
-  //step3
-  new_id = new_id.replaceAll(/[.]{2,}/gi, ".");
-  //step4
-  if (new_id[0] == ".") new_id = new_id.slice(1);
-  if (new_id[new_id.length - 1] == ".")
-    new_id = new_id.slice(0, new_id.length - 1);
-  //step 5
+  //s2
+  new_id = new_id.replace(/[^a-z0-9-_.]/g, "");
+  //s3
+  new_id = new_id.replace(/[.]{2,}/g, ".");
+  //s4
+  new_id = checkDot(new_id);
+  //s5
   if (new_id === "") new_id = "a";
-  //step 6
-  if (new_id.length > 15) {
+  //s6
+  if (new_id.length >= 16) {
     new_id = new_id.slice(0, 15);
-    if (new_id[new_id.length - 1] == ".")
-      new_id = new_id.slice(0, new_id.length - 1);
+    new_id = checkDot(new_id);
   }
-  //step 7
+  //s7
   if (new_id.length <= 2) {
-    let last = new_id[new_id.length - 1];
-    new_id = new_id.padEnd(3, last);
+    new_id = new_id.padEnd(3, new_id[new_id.length - 1]);
   }
   return new_id;
 }
