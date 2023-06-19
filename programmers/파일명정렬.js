@@ -1,24 +1,20 @@
 const isNumeric = (n) => Number.isInteger(+n) && n != " ";
 
-const parser = (info) => {
-  let result = [];
-  let [numInit, numEnd] = [0, info.length];
-  for (let i = 0; i < info.length; i++) {
-    if (isNumeric(info[i])) {
-      numInit = i;
-      for (let j = i + 1; j < info.length; j++) {
-        if (!isNumeric(info[j])) {
-          numEnd = j;
-          break;
-        }
+const parser = (file) => {
+  let header = "";
+  let number = "";
+  for (let i = 0; i < file.length; i++) {
+    const cur = file[i];
+    if (isNumeric(cur)) {
+      for (let j = i; j < file.length; j++) {
+        if (isNumeric(file[j])) {
+          number += file[j];
+        } else return [header.toLowerCase(), Number(number)];
       }
-      break;
+      return [header.toLowerCase(), Number(number)];
     }
+    header += cur;
   }
-  return [
-    info.slice(0, numInit).toLowerCase(),
-    Number(info.slice(numInit, numEnd)),
-  ];
 };
 
 function solution(files) {
