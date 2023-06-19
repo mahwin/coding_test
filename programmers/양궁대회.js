@@ -1,32 +1,48 @@
-function solution(n, info) {
-  const ryan = Array.from({ length: 11 }, () => 0);
-  const result = [0, []]; // [score, 과녁 맞춘 배열];
-  const cal = (apeach, ryan) => {
-    let score = 0;
-    for (let i = 0; i < 10; i++) {
-      if (apeach[i] === 0 && ryan[i] === 0) continue;
-      score += apeach[i] < ryan[i] ? 10 - i : i - 10;
-    }
-    return score;
-  };
+const LEN = 11;
 
-  const dfs = (node, cnt) => {
-    if (node === -1 && cnt === 0) {
-      const score = cal(info, ryan);
-      if (score > result[0]) {
-        result[0] = score;
-        result[1] = [...ryan];
+const diffSocre = (ap, ry) => {
+  let r = 0;
+  let a = 0;
+  for (let i = 0; i < LEN - 1; i++) {
+    if (ap[i] == 0 && ry[i] == 0) continue;
+    else if (ap[i] < ry[i]) r += 10 - i;
+    else a += 10 - i;
+  }
+  return r - a;
+};
+
+const lastBigger = (oldArr, newArr) => {
+  for (let i = LEN - 1; i >= 0; i--) {
+    if (oldArr[i] === newArr[i]) continue;
+    else if (oldArr[i] > newArr[i]) return [...oldArr];
+    else return [...newArr];
+  }
+};
+
+function solution(n, info) {
+  let result = [-1];
+  let scoreDiff = -1;
+  const ryan = [];
+
+  const dfs = (remain) => {
+    if (ryan.length == LEN) {
+      const score = diffSocre(info, ryan);
+      if (score > scoreDiff) {
+        scoreDiff = score;
+        result = [...ryan];
+      } else if (score === scoreDiff) {
+        result = lastBigger(result, ryan);
       }
       return;
-    } else if (node === -1) return;
-
-    for (let i = cnt; i > -1; i--) {
-      ryan[node] = i;
-      dfs(node - 1, cnt - i);
+    }
+    for (let i = 0; i <= remain; i++) {
+      ryan.push(i);
+      dfs(remain - i);
+      ryan.pop();
     }
   };
-  dfs(10, n);
-
-  return result[0] > 0 ? result[1] : [-1];
+  dfs(n);
+  return scoreDiff > 0 ? result : [-1];
 }
+
 console.log(solution(10, [0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 3]));
