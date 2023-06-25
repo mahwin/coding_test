@@ -1,79 +1,75 @@
 class Node {
-  constructor(val, prevNode = null) {
-    this.val = val;
-    this.prev = prevNode;
-    this.next = null;
+  constructor(data, pre, next = null) {
+    this.data = data;
+    this.pre = pre;
+    this.next = next;
   }
 }
 
+const deleteSelectedNode = (selectedNode, deleteStack) => {
+  const preNode = selectedNode.pre;
+  const nextNode = selectedNode.next;
+  deleteStack.push(selectedNode);
+  if (nextNode) selectedNode = nextNode;
+  else selectedNode = preNode;
+
+  if (preNode) preNode.next = nextNode;
+  if (nextNode) nextNode.pre = preNode;
+  return selectedNode;
+};
+
+const moveNode = (selectedNode, d, cnt) => {
+  for (let i = 0; i < cnt; i++) {
+    if (!selectedNode[d]) return selectedNode;
+    selectedNode = selectedNode[d];
+  }
+  return selectedNode;
+};
+
+const backDeleteNode = (deleteStack) => {
+  if (deleteStack.length == 0) return;
+
+  const node = deleteStack.pop();
+  const preNode = node.pre;
+  const nextNode = node.next;
+
+  if (preNode) preNode.next = node;
+  if (nextNode) nextNode.pre = node;
+};
+
 function solution(n, k, cmd) {
-  let answer = Array.from({ length: n }, () => "O");
+  const deleteStack = [];
+  let preNode = new Node(0); // 시작 노드
+  let selectedNode = preNode;
 
-  let prevNode = new Node(0);
-
-  let pointer = prevNode;
-
-  for (let val = 1; val < n; val++) {
-    const nextNode = new Node(val, prevNode);
-    prevNode.next = nextNode;
-    prevNode = nextNode;
-    if (val === k) pointer = nextNode;
+  for (let i = 1; i < n; i++) {
+    const curNode = new Node(i, preNode);
+    preNode.next = curNode;
+    preNode = curNode;
+    if (i == k) selectedNode = curNode;
+  }
+  let d, cnt;
+  for (let i = 0; i < cmd.length; i++) {
+    switch (cmd[i]) {
+      case "C":
+        selectedNode = deleteSelectedNode(selectedNode, deleteStack);
+        break;
+      case "Z":
+        backDeleteNode(deleteStack);
+        break;
+      default:
+        [d, cnt] = cmd[i].split(" ");
+        d = d === "D" ? "next" : "pre";
+        cnt = +cnt;
+        selectedNode = moveNode(selectedNode, d, cnt);
+    }
   }
 
-  const stack = [];
-
-  for (let command of cmd) {
-    let [c, count] = command.split(" ");
-
-    if (c === "D") {
-      let index = 0;
-      while (pointer.next && count > index) {
-        index++;
-        pointer = pointer.next;
-      }
-    }
-    if (c === "U") {
-      let index = 0;
-      while (pointer.prev && count > index) {
-        index++;
-        pointer = pointer.prev;
-      }
-    }
-    if (c === "C") {
-      stack.push(pointer);
-      const next = pointer.next;
-      const prev = pointer.prev;
-
-      if (next && prev) {
-        prev.next = next;
-        next.prev = prev;
-        pointer = pointer.next;
-      } else if (next) {
-        //prev가 없다 ? 제일 앞이다.
-        next.prev = null;
-        pointer = next;
-      } else if (prev) {
-        //next가 없다 ? 제일 뒤다.
-        prev.next = null;
-        pointer = prev;
-      }
-    }
-    if (c === "Z") {
-      const newNode = stack.pop();
-      const prev = newNode.prev;
-      const next = newNode.next;
-      if (prev) {
-        prev.next = newNode;
-      }
-      if (next) {
-        next.prev = newNode;
-      }
-    }
-  }
-  stack.forEach((node) => {
-    answer[node.val] = "X";
+  const result = Array.from({ length: n }, () => "O");
+  deleteStack.forEach((node) => {
+    result[node.data] = "X";
   });
-  return answer.join("");
+  return result.join("");
 }
 
 console.log(
