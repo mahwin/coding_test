@@ -1,74 +1,41 @@
-function solution(user_id, banned_id) {
-  const isBanned = (id, banId) => {
-    if (id.length !== banId.length) return false;
-    for (let i = 0; i < id.length; i++) {
-      if (banId[i] === "*") continue;
-      if (banId[i] !== id[i]) return false;
-    }
-    return true;
-  };
+let set = new Set();
 
-  let banArr = Array.from({ length: banned_id.length }, () => []);
+const fillBanPossible = (banPossible, user_id, banned_id) => {
+  const result = [];
+  const idLen = user_id.length;
 
-  user_id.forEach((id) => {
-    banned_id.forEach((banId, bandIdx) => {
-      if (isBanned(id, banId)) {
-        banArr[bandIdx].push(id);
+  for (let i = 0; i < user_id.length; i++) {
+    const id = user_id[i];
+    const idLen = id.length;
+    for (let j = 0; j < banned_id.length; j++) {
+      const ban = banned_id[j];
+      const banLen = ban.length;
+      if (idLen !== banLen) continue;
+      let matchCnt = 0;
+      for (let k = 0; k < idLen; k++) {
+        if (ban[k] == "*" || ban[k] == id[k]) {
+          matchCnt++;
+        } else break;
       }
-    });
-  });
-
-  let result = new Set();
-  let banLength = banArr.length;
-  let visited = Array.from({ lengt: user_id.length }).fill(false);
-
-  const dfs = (index, arr) => {
-    if (arr.length === banLength) {
-      arr.sort((a, b) => {
-        return a.length === b.length ? (a > b ? -1 : 1) : a.length - b.length;
-      });
-      result.add(arr.join(""));
-      return;
+      if (matchCnt == idLen) banPossible[j].push(id);
     }
+  }
+};
 
-    for (let i = index; i < banLength; i++) {
-      if (visited[i]) continue;
-      visited[i] = true;
-      banArr[i].forEach((id) => {
-        if (!arr.includes(id)) {
-          dfs(i + 1, [...arr, id]);
-        }
-      });
-      visited[i] = false;
-    }
-  };
+const dfs = (arr, node, tmp, target) => {
+  if (node === target) {
+    set.add(tmp.sort().join("-"));
+    return;
+  }
+  for (let i = 0; i < arr[node].length; i++) {
+    if (tmp.includes(arr[node][i])) continue;
+    dfs(arr, node + 1, [...tmp, arr[node][i]], target);
+  }
+};
 
-  dfs(0, []);
-
-  return result.size;
+function solution(user_id, banned_id) {
+  const banPossible = Array.from({ length: banned_id.length }, () => []);
+  fillBanPossible(banPossible, user_id, banned_id);
+  dfs(banPossible, 0, [], banned_id.length);
+  return set.size;
 }
-
-console.log(
-  solution(
-    [
-      "aaaaaaaa",
-      "bbbbbbbb",
-      "cccccccc",
-      "dddddddd",
-      "eeeeeeee",
-      "ffffffff",
-      "gggggggg",
-      "hhhhhhhh",
-    ],
-    [
-      "********",
-      "********",
-      "********",
-      "********",
-      "********",
-      "********",
-      "********",
-      "********",
-    ]
-  )
-);
