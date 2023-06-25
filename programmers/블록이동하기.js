@@ -1,76 +1,133 @@
+const isValid = (r, c, n) => {
+  if (r < 0 || c < 0 || r >= n || c >= n) return false;
+  return true;
+};
+
+const pushInfo = (r1, c1, r2, c2, cnt, v, queue) => {
+  v[r1][c1][r2][c2] = cnt + 1;
+  v[r2][c2][r1][c1] = cnt + 1;
+  queue.push([r1, c1, r2, c2, cnt + 1]);
+};
+
 function solution(board) {
-  const dirs = [
-    [1, 0],
-    [0, 1],
-    [-1, 0],
-    [0, -1],
-  ];
-  const len = board.length;
-
-  const isValid = (x, y) => {
-    if (x > 0 && x <= len && y > 0 && y <= len && board[x - 1][y - 1] === 0)
-      return true;
-    return false;
-  };
-
-  const rotate = (x1, y1, x2, y2, cnt) => {
-    const canRotatePos = [];
-    if (x1 === x2) {
-      // 수평일 때
-
-      if (isValid(x1 + 1, y1) && isValid(x2 + 1, y2)) {
-        canRotatePos.push([x2 + 1, y2, x2, y2, cnt + 1]);
-        canRotatePos.push([x1, y1, x1 + 1, y1, cnt + 1]);
-      }
-      if (isValid(x1 - 1, y1) && isValid(x2 - 1, y2)) {
-        canRotatePos.push([x2 - 1, y2, x2, y2, cnt + 1]);
-        canRotatePos.push([x1, y1, x1 - 1, y1, cnt + 1]);
-      }
-    } else {
-      if (isValid(x1, y1 - 1) && isValid(x2, y2 - 1)) {
-        canRotatePos.push([x2, y2 - 1, x2, y2, cnt + 1]);
-        canRotatePos.push([x1, y1, x1, y1 - 1, cnt + 1]);
-      }
-      if (isValid(x1, y1 + 1) && isValid(x2, y2 + 1)) {
-        canRotatePos.push([x2, y2 + 1, x2, y2, cnt + 1]);
-        canRotatePos.push([x1, y1, x1, y1 + 1, cnt + 1]);
-      }
-    }
-
-    return canRotatePos;
-  };
-
-  let queue = [[1, 1, 1, 2, 0]]; // 좌표1 좌표 2 움직인 횟수
-  let visited = Array.from({ length: len + 1 }, () =>
-    Array.from({ length: len + 1 }, () =>
-      Array.from({ length: len + 1 }, () =>
-        Array.from({ length: len + 1 }, () => Infinity)
-      )
+  const n = board.length;
+  // 로봇이 2X1의 크기라서 row,col row,col을 기준으로 계산.
+  const v = Array.from({ length: n }, () =>
+    Array.from({ length: n }, () =>
+      Array.from({ length: n }, () => Array.from({ length: n }, () => Infinity))
     )
   );
+  v[0][0][0][1] = 0;
+  v[0][1][0][0] = 0;
+  const queue = [[0, 0, 0, 1, 0]]; // [0,0],[0,1] 좌표에서 시작하고 이동 횟수는 0
   while (queue.length) {
-    const [x1, y1, x2, y2, cnt] = queue.shift();
-    if ((x1 === len && y1 === len) || (x2 === len && y2 === len)) return cnt;
-    for (let dir of dirs) {
-      let nx1 = x1 + dir[0];
-      let nx2 = x2 + dir[0];
-      let ny1 = y1 + dir[1];
-      let ny2 = y2 + dir[1];
+    const [r1, c1, r2, c2, cnt] = queue.shift();
+    console.log(r1, c1, r2, c2, cnt);
+    if ((r1 == n - 1 && c1 == n - 1) || (r2 == n - 1 && c2 == n - 1))
+      return cnt;
+    if (r1 == r2) {
+      // 가로 배치
+      const minC = Math.min(c1, c2);
+      const maxC = Math.max(c1, c2);
+      // 왼쪽으로 이동할 때 경계 안이고, 같은 형태로 방문한 적이 없으면
       if (
-        isValid(nx1, ny1, len, board) &&
-        isValid(nx2, ny2, len, board) &&
-        visited[nx1][ny1][nx2][ny2] > cnt + 1
+        isValid(r1, minC - 1, n) &&
+        board[r1][minC - 1] == 0 &&
+        v[r1][minC - 1][r1][maxC - 1] > cnt + 1
       ) {
-        visited[nx1][ny1][nx2][ny2] = cnt + 1;
-        queue.push([nx1, ny1, nx2, ny2, cnt + 1]);
+        pushInfo(r1, minC - 1, r1, maxC - 1, cnt, v, queue);
       }
-    }
-    const rotateArr = rotate(x1, y1, x2, y2, cnt);
-    for (const arr of rotateArr) {
-      const [x1, y1, x2, y2, cnt] = arr;
-      if (visited[x1][y1][x2][y2] > cnt + 1) {
-        visited[x1][y1][x2][y2] = cnt + 1;
-        queue.push(arr);
+      // 오른쪽으로 이동할 때 경계 안이고, 같은 형태로 온적이 없으면
+      if (
+        isValid(r1, maxC + 1, n) &&
+        board[r1][maxC + 1] == 0 &&
+        v[r1][minC + 1][r1][maxC + 1] > cnt + 1
+      ) {
+        pushInfo(r1, minC + 1, r1, maxC + 1, cnt, v, queue);
+      }
+
+      // 밑에 두칸이 비어있으면 회전해서 이동 가능, 평행하게 이동도 가능
+      if (
+        isValid(r1 + 1, c1, n) &&
+        board[r1 + 1][c1] == 0 &&
+        board[r1 + 1][c2] == 0
+      ) {
+        if (v[r1 + 1][c1][r1 + 1][c2] > cnt + 1) {
+          pushInfo(r1 + 1, c1, r1 + 1, c2, cnt, v, queue);
+        }
+        if (v[r1 + 1][minC][r1 + 1][minC] > cnt + 1) {
+          pushInfo(r1, minC, r1 + 1, minC, cnt, v, queue);
+        }
+        if (v[r1 + 1][maxC][r1 + 1][maxC] > cnt + 1) {
+          pushInfo(r1, maxC, r1 + 1, maxC, cnt, v, queue);
+        }
+      }
+      //위에 두칸이 비었다면
+      if (
+        isValid(r1 - 1, c1, n) &&
+        board[r1 - 1][c1] == 0 &&
+        board[r1 - 1][c2] == 0
+      ) {
+        if (v[r1 - 1][c1][r1 - 1][c2] > cnt + 1) {
+          pushInfo(r1 - 1, c1, r1 - 1, c2, cnt, v, queue);
+        }
+        if (v[r1][minC][r1 - 1][minC] > cnt + 1) {
+          pushInfo(r1, minC, r1 - 1, minC, cnt, v, queue);
+        }
+        if (v[r1][maxC][r1 - 1][maxC] > cnt + 1) {
+          pushInfo(r1, maxC, r1 - 1, maxC, cnt, v, queue);
+        }
+      }
+    } else {
+      //세로 배치
+      const minR = Math.min(r1, r2);
+      const maxR = Math.max(r1, r2);
+      // 위로 이동할 수 있는지 확인
+      if (
+        isValid(minR - 1, c1, n) &&
+        board[minR - 1][c1] == 0 &&
+        v[minR - 1][c1][maxR - 1][c1] > cnt + 1
+      ) {
+        pushInfo(minR - 1, c1, maxR - 1, c2, cnt, v, queue);
+      }
+      // 아래로 이동할 수 있는지 확인
+      if (
+        isValid(maxR + 1, c1, n) &&
+        board[maxR + 1][c1] == 0 &&
+        v[maxR + 1][c1][minR + 1][c1] > cnt + 1
+      ) {
+        pushInfo(minR + 1, c1, maxR + 1, c2, cnt, v, queue);
+      }
+      // 왼쪽으로 회전해서 이동가능한지 확인
+      if (
+        isValid(r1, c1 - 1, n) &&
+        board[r1][c1 - 1] == 0 &&
+        board[r2][c2 - 1] == 0
+      ) {
+        if (v[r1][c1 - 1][r2][c1 - 1] > cnt + 1) {
+          pushInfo(r1, c1 - 1, r2, c1 - 1, cnt, v, queue);
+        }
+        if (v[minR][c1][minR][c1 - 1] > cnt + 1) {
+          pushInfo(minR, c1, minR, c1 - 1, cnt, v, queue);
+        }
+        if (v[maxR][c1][maxR][c1 - 1] > cnt + 1) {
+          pushInfo(maxR, c1, maxR, c1 - 1, cnt, v, queue);
+        }
+      }
+      if (
+        isValid(r1, c1 + 1, n) &&
+        board[r1][c1 + 1] == 0 &&
+        board[r2][c2 + 1] == 0
+      ) {
+        if (v[r1][c1 + 1][r2][c1 + 1] > cnt + 1) {
+          pushInfo(r1, c1 + 1, r2, c1 + 1, cnt, v, queue);
+        }
+        if (v[minR][c1][minR][c1 + 1] > cnt + 1) {
+          pushInfo(minR, c1, minR, c1 + 1, cnt, v, queue);
+        }
+        if (v[maxR][c1][maxR][c1 + 1] > cnt + 1) {
+          pushInfo(maxR, c1, maxR, c1 + 1, cnt, v, queue);
+        }
       }
     }
   }
@@ -78,10 +135,12 @@ function solution(board) {
 
 console.log(
   solution([
-    [0, 0, 0, 1, 1],
-    [0, 0, 0, 1, 0],
-    [0, 1, 0, 1, 1],
-    [1, 1, 0, 0, 1],
-    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 0, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 1, 1, 1, 0],
+    [0, 1, 1, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0, 1, 1],
+    [0, 0, 1, 0, 0, 0, 0],
   ])
 );
