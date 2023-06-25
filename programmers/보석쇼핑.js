@@ -1,31 +1,42 @@
 function solution(gems) {
-  let answer = [0, gems.length - 1];
-  let amountOfGem = new Set(gems).size;
-  let [left, right] = [0, 0];
+  let result = [1, gems.length];
 
-  let gemCounter = new Map();
-  gemCounter.set(gems[0], 1);
+  let target = new Set(gems).size; // 보석의 종류 저장
+  const gemMap = new Map(); // 특정 윈도우 내에 포함되어 있는 보석의 정보 저장 {보성종류:갯수}
+  let l = 0;
 
-  while (left <= right && right < gems.length) {
-    if (amountOfGem === gemCounter.size) {
-      if (answer[1] - answer[0] > right - left) {
-        answer = [left, right];
+  for (let r = 0; r < gems.length; r++) {
+    const gem = gems[r];
+    if (gemMap.has(gem)) gemMap.set(gem, gemMap.get(gem) + 1);
+    else gemMap.set(gem, 1);
+
+    if (gemMap.size == target) {
+      while (true) {
+        const firstGem = gems[l];
+        const cnt = gemMap.get(firstGem);
+        if (cnt >= 1) {
+          if (result[1] - result[0] > r - l) {
+            result = [l + 1, r + 1];
+          }
+
+          if (cnt - 1 == 0) {
+            gemMap.delete(firstGem);
+            l++;
+            break;
+          } else {
+            l++;
+            gemMap.set(firstGem, cnt - 1);
+          }
+        }
       }
-      const outGem = gems[left];
-      if (gemCounter.get(outGem) > 1) {
-        gemCounter.set(outGem, gemCounter.get(outGem) - 1);
-      } else {
-        gemCounter.delete(outGem);
-      }
-      left++;
-    } else {
-      right++;
-      let inGem = gems[right];
-      gemCounter.set(inGem, (gemCounter.get(inGem) || 0) + 1);
-    }
+    } else continue;
   }
 
-  return answer.map((n) => n + 1);
+  return result;
 }
 
-console.log(solution(["AA", "AB", "AC", "AA", "AC"]));
+console.log(
+  solution(["DIA", "RUBY", "RUBY", "DIA", "DIA", "EMERALD", "SAPPHIRE", "DIA"])
+);
+
+console.log(solution(["A", "B", "B", "B", "B", "B", "B", "C", "B", "A"]));
