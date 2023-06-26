@@ -1,20 +1,23 @@
-function solution(stones, k) {
-  // let right = Math.max(...stones);
-  // => 효율성에서 런타임 에러나옴
-  let right = 200000000;
-  let left = 1;
+const binarySearch = (stones, k) => {
+  let l = 0;
+  let r = 200_000_000;
+  while (l <= r) {
+    const mid = Math.floor((l + r) / 2);
+    let cnt = 0; // 몇 명이 건너 뛰었는지 체크
+    for (let i = 0; i < stones.length; i++) {
+      if (stones[i] - mid <= 0)
+        cnt++; // stones[i] > mid면 적어도 한 명이상이 못 건넘
+      else cnt = 0;
 
-  while (left <= right) {
-    const mid = Math.floor((left + right) / 2);
-    let count = 0;
-    for (const stone of stones) {
-      stone - mid <= 0 ? count++ : (count = 0);
-      // num-mid => 0이거나 음수가 k번 만큼 연속하면 그 값 보다 작아야함
-      // 그래서 break 걸어서 right = mid-1 을 해서 다시 시도.
-      if (count === k) break;
+      if (cnt === k) break;
     }
-    if (count === k) right = mid - 1;
-    else left = mid + 1;
+    if (cnt === k)
+      r = mid - 1; // cnt와 k가 같다는 말은 더 적은 수의 친구가 건널 수 있다.
+    else l = mid + 1; // cnt가 k보다 작다는 것은 더 많은 수의 친구가 건널 수 있다.
   }
-  return left;
+  return l;
+};
+
+function solution(stones, k) {
+  return binarySearch(stones, k);
 }
