@@ -1,47 +1,33 @@
 function solution(info, edges) {
-  let answer = 0;
+  const binaryTree = {};
+  edges.forEach(([from, to]) => {
+    binaryTree[from] = binaryTree[from] ? binaryTree[from].concat(to) : [to];
+  });
 
-  const graph = Array.from({ length: info.length }, () => []);
+  const leafNodes = [];
+  let sheep = 0;
+  const dfs = (node, sh, wo, possible) => {
+    sheep = Math.max(sh, sheep);
 
-  for (let i = 0; i < edges.length; i++) {
-    const [from, to] = edges[i];
-    graph[from].push(to);
-  }
+    if (binaryTree[node]) {
+      possible.push(...binaryTree[node]);
+    }
 
-  const dfs = (sheep, wolf, node, possible) => {
-    info[node] === 1 ? wolf++ : sheep++;
-    if (wolf === sheep) return;
+    for (let i = 0; i < possible.length; i++) {
+      const nextNode = possible[i];
+      const animal = info[nextNode];
 
-    answer = answer < sheep ? sheep : answer;
-
-    let currentIdx = possible.indexOf(node);
-    let copyPossible = [...possible];
-    copyPossible.splice(currentIdx, 1);
-    copyPossible.push(...graph[node]);
-
-    for (const next of copyPossible) {
-      dfs(sheep, wolf, next, copyPossible);
+      if (animal === 0) {
+        const newPossible = [...possible];
+        newPossible.splice(i, 1);
+        dfs(nextNode, sh + 1, wo, newPossible);
+      } else if (sh > wo + 1) {
+        const newPossible = [...possible];
+        newPossible.splice(i, 1);
+        dfs(nextNode, sh, wo + 1, newPossible);
+      }
     }
   };
-
-  dfs(0, 0, 0, [0]);
-
-  return answer;
+  dfs(0, 1, 0, []);
+  return sheep;
 }
-
-solution(
-  [0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1],
-  [
-    [0, 1],
-    [1, 2],
-    [1, 4],
-    [0, 8],
-    [8, 7],
-    [9, 10],
-    [9, 11],
-    [4, 3],
-    [6, 5],
-    [4, 6],
-    [8, 9],
-  ]
-);
