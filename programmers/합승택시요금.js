@@ -1,46 +1,28 @@
 function solution(n, s, a, b, fares) {
-  const fareBoard = Array.from({ length: n + 1 }, () =>
+  const cost = Array.from({ length: n + 1 }, () =>
     Array.from({ length: n + 1 }, () => Infinity)
   );
 
-  //자기 자신
-  for (let i = 1; i <= n; i++) {
-    fareBoard[i][i] = 0;
-  }
+  for (let i = 0; i <= n; i++) cost[i][i] = 0;
 
-  //초기 값
-  fares.forEach(([from, to, cost]) => {
-    fareBoard[from][to] = cost;
-    fareBoard[to][from] = cost;
+  fares.forEach(([a, b, c]) => {
+    cost[a][b] = c;
+    cost[b][a] = c;
   });
 
-  for (let i = 1; i <= n; i++) {
-    for (let j = 1; j <= n; j++) {
-      for (let k = 1; k <= n; k++) {
-        if (fareBoard[j][k] > fareBoard[j][i] + fareBoard[i][k])
-          fareBoard[j][k] = fareBoard[j][i] + fareBoard[i][k];
+  for (let k = 1; k <= n; k++) {
+    for (let i = 1; i <= n; i++) {
+      for (let j = 1; j <= n; j++) {
+        if (cost[i][k] + cost[k][j] < cost[i][j])
+          cost[i][j] = cost[i][k] + cost[k][j];
       }
     }
   }
 
-  let answer = fareBoard[s][b] + fareBoard[s][a];
-  for (let node = 1; node <= n; node++) {
-    const fare = fareBoard[s][node] + fareBoard[node][b] + fareBoard[node][a];
-
-    answer = Math.min(answer, fare);
+  //출발 s, A 도착 a, B 도착 b
+  let fare = Infinity;
+  for (let i = 1; i <= n; i++) {
+    fare = Math.min(fare, cost[s][i] + cost[i][a] + cost[i][b]);
   }
-
-  return answer;
+  return fare;
 }
-
-solution(6, 4, 6, 2, [
-  [4, 1, 10],
-  [3, 5, 24],
-  [5, 6, 2],
-  [3, 1, 41],
-  [5, 1, 24],
-  [4, 6, 50],
-  [2, 4, 66],
-  [2, 3, 22],
-  [1, 6, 25],
-]);
