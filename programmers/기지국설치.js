@@ -1,27 +1,49 @@
-function solution(n, stations, w) {
-  var answer = 0;
+// 정확성 O , 효율성 x
+function sol1(n, stations, w) {
+  let answer = 0;
+  const v = Array.from({ length: n + 1 }, () => false);
+  stations.forEach((station) => {
+    let init = station - w < 0 ? 0 : station - w;
+    let last = station + w > n ? n : station + w;
+    for (let i = init; i <= last; i++) {
+      v[i] = true;
+    }
+  });
 
-  // 정확성은 맞으나 메모리 초과나옴 그냥 배열 자체를 만들지 말고 반복문에서 조건으로 index이동하는게 좋아보임
-  // const arr = Array.from({ length: n }, () => false);
-  // stations.forEach((station) => {
-  //   for (let start = -w; start <= w; start++) {
-  //     arr[start + station - 1] = true;
-  //   }
-  // });
-
-  let stationIdx = 0;
-  let stationRange = [stations[stationIdx] - w, stations[stationIdx] + w];
   for (let i = 1; i <= n; i++) {
-    if (i >= stationRange[0] && i <= stationRange[1]) {
-      i = stationRange[1];
-      stationIdx++;
-      stationRange = [stations[stationIdx] - w, stations[stationIdx] + w];
-    } else {
+    if (v[i]) continue;
+    else {
       answer++;
-      i += 2 * w;
+      let init = i;
+      let last = i + 2 * w > n ? n : i + 2 * w;
+      for (let j = init; j <= last; j++) {
+        v[j] = true;
+      }
+    }
+  }
+
+  return answer;
+}
+
+// 정확성 O, 효율성 ㅒ
+function solution(n, stations, w) {
+  let answer = 0;
+  let width = 1 + 2 * w;
+  let stationIdx = 0;
+  let i = 1;
+
+  while (i <= n) {
+    if (i >= stations[stationIdx] - w && i <= stations[stationIdx] + w) {
+      // 현 위치가 미리 설치된 기지국의 전파를 받는 곳이면
+      // 전파가 미치는 마지막 위치로 이동한다.
+      i = stations[stationIdx] + w + 1;
+      stationIdx++;
+    } else {
+      // 현 위치에 전파가 없다면 현 위치를 마지막 전파가 닿는 위치가 되도록
+      // 현 위치 + width 위치에 기지국을 세운다.
+      i += width;
+      answer++;
     }
   }
   return answer;
 }
-
-solution(11, [4, 11], 1);
