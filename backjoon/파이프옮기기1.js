@@ -1,48 +1,69 @@
-let input = `6
-0 0 0 0 0 0
-0 1 0 0 0 0
-0 0 0 0 0 0
-0 0 0 0 0 0
-0 0 0 0 0 0
-0 0 0 0 0 0`.split("\n");
+// let input = `6
+// 0 0 0 0 0 0
+// 0 1 0 0 0 0
+// 0 0 0 0 0 0
+// 0 0 0 0 0 0
+// 0 0 0 0 0 0
+// 0 0 0 0 0 0`.split("\n");
 
-// let fs = require("fs");
-// let input = fs.readFileSync("/dev/stdin").toString().trim().split("\n");
+let fs = require("fs");
+let input = fs.readFileSync("/dev/stdin").toString().trim().split("\n");
 
-const n = Number(input.shift());
-//[3][n][n]   [3] => 가로 세로 대각선 [n][n] => r,c 좌표
-
-input = input.map((el) => el.split(" ").map(Number));
-
-const isValid = (r, c) => {
+const isValid = (r, c, n) => {
   if (r < 0 || c < 0 || r >= n || c >= n) return false;
-  if (input[r][c]) return false;
-  return true;
+  if (input[r][c] === "0") return true;
+  return false;
 };
 
 const solution = () => {
-  const dp = Array.from({ length: 3 }, () =>
-    Array.from({ length: n }, () => Array.from({ length: n }, () => 0))
+  const n = Number(input.shift());
+  // r 값, c 값, 방향  dp[r][c][d] = 이 방향으로 도착한 가짓수 d : [0:가로,1:세로,2:대각선]
+  const dp = Array.from({ length: n }, () =>
+    Array.from({ length: n }, () => Array.from({ length: 3 }, () => 0))
   );
-  dp[0][0][1] = 1;
+
+  input = input.map((el) => el.split(" "));
+
+  dp[0][1][0] = 1;
 
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
-      if (!isValid(r, c)) continue;
-      if (isValid(r, c - 1)) {
-        dp[0][r][c] += dp[0][r][c - 1] + dp[2][r][c - 1];
+      if (input[r][c] == "1") continue;
+      // 가로
+      if (isValid(r, c - 1) && isValid(r, c - 2)) {
+        dp[r][c][0] += dp[r][c - 1][0];
+        if (isValid(r - 1, c - 2) && isValid(r - 1, c - 1)) {
+          dp[r][c][0] += dp[r][c - 1][2];
+        }
       }
-      if (isValid(r - 1, c)) {
-        dp[1][r][c] += dp[1][r - 1][c] + dp[2][r - 1][c];
+
+      //세로
+      if (isValid(r - 1, c) && isValid(r - 2, c)) {
+        dp[r][c][1] += dp[r - 1][c][1];
+        if (isValid(r - 1, c - 1) && isValid(r - 2, c - 1)) {
+          dp[r][c][1] += dp[r - 1][c][2];
+        }
       }
-      if (isValid(r - 1, c - 1) && isValid(r - 1, c) && isValid(r, c - 1)) {
-        dp[2][r][c] +=
-          dp[0][r - 1][c - 1] + dp[2][r - 1][c - 1] + dp[1][r - 1][c - 1];
+      //대각선
+      if (isValid(r - 1, c) && isValid(r, c - 1) && isValid(r - 1, c - 1)) {
+        if (isValid(r - 1, c - 2)) {
+          dp[r][c][2] += dp[r - 1][c - 1][0];
+        }
+        if (isValid(r - 2, c - 1)) {
+          dp[r][c][2] += dp[r - 1][c - 1][1];
+        }
+        if (
+          isValid(r - 1, c - 2) &&
+          isValid(r - 2, c - 1) &&
+          isValid(r - 2, c - 2)
+        ) {
+          dp[r][c][2] += dp[r - 1][c - 1][2];
+        }
       }
     }
   }
 
-  console.log(dp[0][n - 1][n - 1] + dp[1][n - 1][n - 1] + dp[2][n - 1][n - 1]);
+  return dp[n - 1][n - 1].reduce((p, c) => (p += c), 0);
 };
 
-solution();
+console.log(solution());
