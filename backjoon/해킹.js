@@ -1,42 +1,131 @@
-let input = `2
+let input = `5
+2 1 1
+1 2 4
 3 2 2
 2 1 5
 3 2 5
 3 3 1
 2 1 2
 3 1 8
-3 2 4`.split("\n");
+3 2 4
+4 5 1
+4 1 1
+2 4 10
+3 1 2
+2 3 2
+3 2 2
+4 5 1
+3 2 2
+2 3 2
+3 1 2
+2 4 10
+4 1 1`
+  .trim()
+  .split("\n");
 
-let cases = input.shift();
+// const fs = require("fs");
+// let input = fs.readFileSync("/dev/stdin").toString().trim().split("\n");
 
-while (cases--) {
-  const [n, d, c] = input.shift().split(" ").map(Number);
-  const currentInput = input.splice(0, d);
-  const graph = Array.from({ length: n + 1 }, () => []);
-  const distance = Array.from({ length: n + 1 }, () => Infinity);
+class MinHeap {
+  constructor() {
+    this.heap = [null];
+  }
 
-  currentInput.forEach((el) => {
-    const [a, b, cost] = el.split(" ").map(Number);
-    graph[b].push([a, cost]);
-  });
+  getMin() {
+    return this.heap[1] ? this.heap[1] : null;
+  }
 
-  const queue = [[c, 0]];
-  while (queue.length) {
-    const costArr = queue.map((el) => el[1]);
-    const smallIdx = costArr.indexOf(Math.min(...costArr));
-    const [node, cost] = queue[smallIdx];
-    queue.splice(smallIdx, 1);
+  size() {
+    return this.heap.length - 1;
+  }
 
-    if (!graph[node]) continue;
-    for (let [nextNode, nextCost] of graph[node]) {
-      if (distance[nextNode] > nextCost + cost) {
-        distance[nextNode] = nextCost + cost;
+  swap(a, b) {
+    [this.heap[a], this.heap[b]] = [this.heap[b], this.heap[a]];
+  }
 
-        queue.push([nextNode, distance[nextNode]]);
+  push(value) {
+    this.heap.push(value);
+    let curIdx = this.heap.length - 1;
+    let parIdx = Math.floor(curIdx / 2);
+
+    while (curIdx > 1 && this.heap[parIdx].cost > this.heap[curIdx].cost) {
+      this.swap(curIdx, parIdx);
+      curIdx = parIdx;
+      parIdx = Math.floor(curIdx / 2);
+    }
+  }
+
+  pop() {
+    const min = this.heap[1];
+    if (this.heap.length <= 2) this.heap = [null];
+    else this.heap[1] = this.heap.pop();
+
+    let curidx = 1;
+    let leftidx = curidx * 2;
+    let rightidx = curidx * 2 + 1;
+
+    if (!this.heap[leftidx]) return min;
+    if (!this.heap[rightidx]) {
+      if (this.heap[leftidx].cost < this.heap[curidx].cost) {
+        this.swap(leftidx, curidx);
+      }
+      return min;
+    }
+
+    while (
+      leftidx < this.size() &&
+      (this.heap[leftidx].cost < this.heap[curidx].cost ||
+        this.heap[rightidx].cost < this.heap[curidx].cost)
+    ) {
+      const minidx =
+        this.heap[leftidx].cost > this.heap[rightidx].cost ? rightidx : leftidx;
+      this.swap(minidx, curidx);
+      curidx = minidx;
+      leftidx = curidx * 2;
+      rightidx = curidx * 2 + 1;
+    }
+
+    return min;
+  }
+}
+
+const 다익스트라 = (n, c, graph) => {
+  const d = Array.from({ length: n + 1 }, () => Infinity);
+  d[c] = 0;
+  const pq = new MinHeap();
+  pq.push({ vertix: c, cost: 0 });
+
+  while (pq.size()) {
+    const { vertix, cost } = pq.pop();
+
+    if (d[vertix] < cost) continue;
+
+    for (const [nextNode, nextCost] of graph[vertix]) {
+      const newCost = cost + nextCost;
+      if (d[nextNode] > newCost) {
+        d[nextNode] = newCost;
+        pq.push({ vertix: nextNode, cost: newCost });
       }
     }
   }
-  const arr = distance.filter((n) => n !== Infinity);
+  return d;
+};
 
-  console.log(arr.length + 1 + " " + Math.max(...arr));
-}
+const solution = () => {
+  const cases = Number(input[0]);
+  let idx = 1;
+  for (let i = 0; i < cases; i++) {
+    const [n, d, c] = input[idx++].split(" ").map(Number);
+    const graph = Array.from({ length: n + 1 }, () => []);
+
+    for (let j = 0; j < d; j++) {
+      const [a, b, cost] = input[idx++].split(" ").map(Number);
+      graph[b].push([a, cost]);
+    }
+    const diks = 다익스트라(n, c, graph);
+    const canReached = diks.filter((el) => el !== Infinity);
+    console.log(canReached.length, Math.max(...canReached));
+  }
+};
+
+solution();
