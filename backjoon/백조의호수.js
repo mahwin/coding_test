@@ -83,32 +83,36 @@ const solution = () => {
     }
   };
 
-  const isCanReach = (board, 백조) => {
-    const q = new Queue();
-    q.enqueue(백조[0]);
-    const v = Array.from({ length: rowLen }, () =>
-      Array.from({ length: colLen }, () => false)
-    );
-
-    while (q.size !== 0) {
-      const [r, c] = q.dequeue();
-      if (r === 백조[1][0] && c === 백조[1][1]) return true;
-
+  let day = 1;
+  const v = Array.from({ length: rowLen }, () =>
+    Array.from({ length: colLen }, () => false)
+  );
+  const 백조Queue = new Queue();
+  const nextCanGoQueue = new Queue();
+  while (1) {
+    isNextLake(Wqueue);
+    const [sr, sc] = 백조[0];
+    v[sr][sc] = true;
+    백조Queue.enqueue(백조[0]);
+    while (백조Queue.size) {
+      const [r, c] = 백조Queue.dequeue();
       for (const d of dirs) {
         const nr = r + d[0];
         const nc = c + d[1];
-        if (isValid(nr, nc) && board[nr][nc] == "." && !v[nr][nc]) {
+        if (nr === 백조[1][0] && nc === 백조[1][1]) return day;
+        if (isValid(nr, nc) && !v[nr][nc]) {
+          if (board[nr][nc] === ".") {
+            백조Queue.enqueue([nr, nc]);
+          } else {
+            nextCanGoQueue.enqueue([nr, nc]);
+          }
           v[nr][nc] = true;
-          q.enqueue([nr, nc]);
         }
       }
     }
-    return false;
-  };
-  let day = 1;
-  while (1) {
-    isNextLake(Wqueue);
-    if (isCanReach(board, 백조)) return day;
+    while (nextCanGoQueue.size !== 0) {
+      백조Queue.enqueue(nextCanGoQueue.dequeue());
+    }
     day++;
   }
 };
