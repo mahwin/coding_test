@@ -1,36 +1,6 @@
 const fs = require("fs");
 // let input = fs.readFileSync("/dev/stdin").toString().trim().split("\n");
 
-let input = `Red Alder
-Ash
-Aspen
-Basswood
-Ash
-Beech
-Yellow Birch
-Ash
-Cherry
-Cottonwood
-Ash
-Cypress
-Red Elm
-Gum
-Hackberry
-White Oak
-Hickory
-Pecan
-Hard Maple
-White Oak
-Soft Maple
-Red Oak
-Red Oak
-White Oak
-Poplan
-Sassafras
-Sycamore
-Black Walnut
-Willow`.split("\n");
-
 const solution = () => {
   let 종 = {};
   let total = input.length * 0.01;
