@@ -1,6 +1,6 @@
 function solution(scores) {
   const wanho = scores[0][0] + scores[0][1]; // 원호의 등수를 구하기 위해
-  let exist = false; // 원호가 인센티브를 받을 수 있으면 true;
+
   let grade = 0; //원호보다 합산 점수가 높으면 +1
 
   //합산 점수가 원호보다 낮으면 논외, 원호 찾기 위해 인덱스 붙임(0)
@@ -13,7 +13,7 @@ function solution(scores) {
   ); // 내림차순 정렬
 
   const len = filterScores.length;
-  let incent = [];
+
   for (let i = 0; i < len; i++) {
     const [s1, s2, idx] = filterScores[i];
     let canRecived = true;
@@ -30,3 +30,6 @@ function solution(scores) {
 
   return grade;
 }
+
+// 9시 10시 단비
+// 10시 ~ 12시
