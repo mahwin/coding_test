@@ -1,22 +1,22 @@
 function solution(land) {
-  let len = land.length;
-  let canChoice = [
-    [1, 2, 3],
-    [0, 2, 3],
-    [0, 1, 3],
-    [0, 1, 2],
-  ];
-  const dp = Array.from({ length: len }, () =>
-    Array.from({ length: 4 }, () => 0)
+  const COL_LEN = 4;
+  const ROW_LEN = land.length;
+  const dp = Array.from({ length: ROW_LEN }, () =>
+    Array.from({ length: COL_LEN }, () => 0)
   );
-  dp[0] = land[0];
+  dp[0] = [...land[0]];
 
-  for (let i = 1; i < len; i++) {
-    for (let j = 0; j < 4; j++) {
-      const [a, b, c] = canChoice[j];
-      dp[i][j] =
-        Math.max(dp[i - 1][a], dp[i - 1][b], dp[i - 1][c]) + land[i][j];
+  for (let i = 1; i < ROW_LEN; i++) {
+    for (let j = 0; j < COL_LEN; j++) {
+      let max = 0;
+      for (let k = 0; k < COL_LEN; k++) {
+        if (j === k) continue;
+        max = Math.max(max, dp[i - 1][k]);
+      }
+
+      dp[i][j] = land[i][j] + max;
     }
   }
-  return Math.max(...dp[len - 1]);
+
+  return Math.max(...dp.at(-1));
 }
