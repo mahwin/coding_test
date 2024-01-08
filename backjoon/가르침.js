@@ -1,52 +1,113 @@
-const [n, k] = input[0].split(" ").map(Number);
-let pick;
-let result = 0;
-const words = []; // input 데이터를 비트화해서 저장
+let input = `50 15
+antarctica
+antahellotica
+antacafsdrtica
+antarngjocbtica
+antarnfzojctica
+antarnaffuctica
+antarnaapoctica
+antarnapgoctica
+antardsfjoctica
+antanapgoctica
+antaafsdrctica
+antarjhgctica
+antarfjhctica
+antarfbncttica
+antarrtctica
+antarbetrectica
+antarqreufctica
+antarrectica
+antarqfjectica
+antarafjtica
+antarqvawectica
+antarqofwyctica
+antarvnfjctica
+antarqovaeutica
+antareufjectica
+antarqefjtica
+antarqefjectica
+antaructica
+antarqafdoctica
+antarqictica
+antarqerjictica
+antarqoeictica
+antarqeeictica
+antarbroctica
+antarbuyuoctica
+antarbvuroctica
+antarbiuyyctica
+antarbdsfhctica
+antarbquroctica
+antarinfjctica
+antarirjectica
+antariqwctica
+antariwyectica
+antarigsdvctica
+antarijectica
+antarqegafdtica
+antarqctica
+antarqgoeictica
+antarqtqtoetica
+antarqnuyectica`.split("\n");
 
-const sol = () => {
-  const initAlpha = new Set("antatica");
-
-  if (k < initAlpha.size) return 0;
-  else if (k >= 26) return n;
-
-  let alpha = 0;
-
-  //초기값 비트 표기
-  [...initAlpha].forEach(
-    (a) => (alpha |= 1 << (a.charCodeAt() - "a".charCodeAt()))
-  );
-
-  //input 단어를 비트로 표기
-  for (let i = 1; i <= n; i++) {
-    let word = 0;
-    input[i].split("").forEach((char) => {
-      word |= 1 << (char.charCodeAt() - "a".charCodeAt());
+const filter = (input) => {
+  return input.map((el) => {
+    const set = new Set();
+    el.split("").forEach((char) => {
+      set.add(convertIdx(char));
     });
-    words.push(word);
-  }
-
-  //고를 수 있는 알파벳 수
-  pick = k - initAlpha.size;
-
-  dfs(0, 0, alpha); // 선택한 수, 비트 마스크
+    return [...set];
+  });
 };
 
-const dfs = (init, cnt, alphaBit) => {
-  if (cnt === pick) {
-    let tmp = 0;
-    for (const word of words) {
-      if ((alphaBit | word) === alphaBit) {
-        tmp++;
-      }
+const convertIdx = (char) => {
+  return char.charCodeAt() - "a".charCodeAt();
+};
+
+const solution = () => {
+  const [N, K] = input.shift().split(" ").map(Number);
+  const visited = Array.from({ length: 26 }, () => false);
+  input = filter(input);
+  const prefix = "antic";
+
+  prefix.split("").forEach((char) => {
+    visited[convertIdx(char)] = true;
+  });
+
+  const needPick = K - prefix.length;
+
+  let result = 0;
+  if (needPick < 0) return 0;
+
+  const dfs = (node, pick) => {
+    if (pick === needPick) {
+      result = Math.max(result, cnt(input, visited));
+      return;
     }
-    result = Math.max(result, tmp);
-    return;
-  }
-  for (let i = init; i < 26; i++) {
-    if (alphaBit & (1 << i)) continue;
-    dfs(i + 1, cnt + 1, alphaBit | (1 << i));
-  }
+
+    for (let i = node; i < 26; i++) {
+      if (visited[i]) continue;
+      visited[i] = true;
+      dfs(i + 1, pick + 1);
+      visited[i] = false;
+    }
+  };
+
+  dfs(0, 0);
+  return result;
 };
 
-sol();
-console.log(result);
+const cnt = (input, visited) => {
+  let result = 0;
+
+  for (let i = 0; i < input.length; i++) {
+    let flag = true;
+    for (let idx of input[i]) {
+      if (!visited[idx]) flag = false;
+    }
+    if (flag) result++;
+  }
+  return result;
+};
+
+console.log(solution());
