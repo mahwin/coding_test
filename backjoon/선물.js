@@ -1,28 +1,27 @@
-// const fs = require("fs");
-// let input = fs.readFileSync("/dev/stdin").toString();
-
-let input = "10 4 2 10";
-
-const solution = () => {
-  const [n, l, w, h] = input.split(" ").map(Number);
-  let left = 0;
-  let right = Math.max(l, w, h);
-  // 바이너리 서치
-  for (let i = 0; i < 10000; i++) {
-    const mid = (left + right) / 2;
-
-    let cnt = 1;
-    for (const len of [l, w, h]) {
-      cnt *= Math.floor(len / mid);
+let input = `10 4 2 10`;
+function solution() {
+  const [L, W, H, N] = input.split(" ").map(Number);
+  function binarySearch() {
+    let ret = 0;
+    let left = 0;
+    let right = Math.max(L, Math.max(W, H));
+    for (let i = 0; i < 57; i++) {
+      let mid = (left + right) / 2;
+      if (check(mid)) {
+        left = mid;
+        ret = mid;
+      } else {
+        right = mid;
+      }
     }
-
-    if (cnt >= n) {
-      left = mid;
-    } else {
-      right = mid;
-    }
+    return ret.toFixed(9);
   }
-  console.log(right);
-};
-
+  function check(a) {
+    if (Math.floor(L / a) * Math.floor(W / a) * Math.floor(H / a) >= N)
+      return true;
+    return false;
+  }
+  let answer = binarySearch();
+  return console.log(answer);
+}
 solution();
