@@ -1,28 +1,28 @@
-const fs = require("fs");
-let input = fs.readFileSync("/dev/stdin").toString().trim().split("\n");
+// const fs = require("fs");
+// let input = fs.readFileSync("/dev/stdin").toString().trim().split("\n");
 
-const strToNumArr = (str) =>
-  str.split(" ").map((numString) => Number(numString));
+let input = `3
+4 4
+3 4
+2 4`.split("\n");
 
 function solution() {
-  const N = Number(input.shift());
-  const schedule = input
-    .map((str) => strToNumArr(str))
-    .sort((a, b) => a[1] - b[1] || a[0] - b[0]);
-
-  let result = 0,
-    recentEnd = 0;
-  schedule.forEach(([start, end]) => {
-    //전에 진행된 회의가 끝나기 전에 시작되면 다음으로
-    if (start < recentEnd) {
-      return;
-    }
-    //아니면 진행
-    result++;
-    recentEnd = end;
+  let N = +input.shift();
+  input = input.map((v) => v.split(" ").map(Number));
+  input.sort((a, b) => {
+    if (a[1] === b[1]) {
+      return a[0] - b[0];
+    } else return a[1] - b[1];
   });
-
-  return result;
+  let result = 0;
+  let curTime = 0;
+  for (const [start, end] of input) {
+    if (curTime <= start) {
+      curTime = end;
+      result++;
+    }
+  }
+  console.log(result);
 }
 
-console.log(solution());
+solution();
