@@ -1,27 +1,34 @@
+function cal(num1, num2) {
+  return [num1 + num2, num1 - num2, num1 * num2, Math.floor(num1 / num2)];
+}
+
+function isInArr(target, arr) {
+  return arr.includes(target);
+}
+
+function repeatNum(str, repeatN) {
+  return Number(`${str}`.repeat(repeatN));
+}
+
 function solution(N, number) {
-  let dp = Array.from({ length: 9 }, () => []);
+  if (N === number) return 1;
 
-  for (let i = 1; i < 9; i++) {
-    const NN = Number(N.toString().padStart(i, N.toString()));
+  const dp = Array.from({ length: 10 }, () => []);
+
+  for (let i = 1; i <= 8; i++) {
     let set = new Set();
-    set.add(NN);
-
-    for (let j = i - 1; j >= 1; j--) {
+    for (let j = 1; j < i; j++) {
       const k = i - j;
-
-      dp[j].forEach((a) => {
-        dp[k].forEach((b) => {
-          set.add(a + b);
-          set.add(a - b);
-          set.add(Math.floor(a / b));
-          set.add(a * b);
-        });
-      });
+      for (const num1 of dp[j]) {
+        for (const num2 of dp[k]) {
+          const calResult = cal(num1, num2);
+          if (isInArr(number, calResult)) return i;
+          calResult.forEach((el) => set.add(el));
+        }
+      }
     }
-
-    if (set.has(number)) return i;
-    dp[i] = [...set];
+    if (repeatNum(N, i) === number) return i;
+    dp[i] = [repeatNum(N, i), ...set];
   }
-
   return -1;
 }
