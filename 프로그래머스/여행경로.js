@@ -1,34 +1,36 @@
+function sortedByAlpha(route1, route2) {
+  for (let i = 0; i < route1.length; i++) {
+    const r1 = route1[i];
+    const r2 = route2[i];
+    if (r1 === r2) continue;
+    return r1 > r2 ? route2 : route1;
+  }
+}
+
 function solution(tickets) {
-  const graph = {};
-
-  tickets.forEach(([a, b], i) => {
-    if (graph[a]) graph[a].push([b, i]);
-    else graph[a] = [[b, i]];
-  });
-  const len = tickets.length + 1;
-  let result = [];
-
   const v = Array.from({ length: tickets.length }, () => false);
 
-  const dfs = (next, route) => {
-    if (route.length === len) {
-      if (!result.length) result = route;
+  let result = null;
+
+  const dfs = (route) => {
+    if (route.length === tickets.length + 1) {
+      if (!result) result = route;
       else if (result.join("") > route.join("")) {
         result = route;
       }
       return;
     }
-    if (!graph[next]) return;
 
-    for (const [n, i] of graph[next]) {
+    for (let i = 0; i < tickets.length; i++) {
       if (v[i]) continue;
-      v[i] = true;
-      dfs(n, route.concat(n));
-      v[i] = false;
+      if (tickets[i][0] === route.at(-1)) {
+        v[i] = true;
+        dfs(route.concat(tickets[i][1]));
+        v[i] = false;
+      }
     }
   };
 
-  dfs("ICN", ["ICN"]);
-
+  dfs(["ICN"]);
   return result;
 }
