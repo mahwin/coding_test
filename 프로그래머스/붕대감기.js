@@ -1,22 +1,27 @@
+function upToMax(target, max, addNum) {
+  return Math.min(target + addNum, max);
+}
+
 function solution(bandage, health, attacks) {
-  const maxHp = health;
+  const MAX_HEALTH = health;
+  const [duration, secHeal, heal] = bandage;
 
-  let [cooltime, secHeal, addHeal] = bandage;
+  let preAttTime = attacks[0][0] - 1;
 
-  let accHealingTime = 0;
-  let preTime = 0;
+  for (let i = 0; i < attacks.length; i++) {
+    const [attTime, dem] = attacks[i];
 
-  for (const [nextTime, dam] of attacks) {
-    const timeDiff = nextTime - preTime - 1;
-    health += Math.floor(timeDiff / cooltime) * addHeal;
-    health += timeDiff * secHeal;
+    const attDiff = attTime - preAttTime - 1;
 
-    health = Math.min(health, maxHp);
+    if (attDiff >= duration) {
+      health += Math.floor(attDiff / duration) * heal;
+    }
+    health = upToMax(health, MAX_HEALTH, attDiff * secHeal);
 
-    preTime = nextTime;
+    health -= dem;
+    preAttTime = attTime;
 
-    health -= dam;
     if (health <= 0) return -1;
   }
-  return health;
+  return health <= 0 ? -1 : health;
 }
