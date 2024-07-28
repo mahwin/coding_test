@@ -1,53 +1,58 @@
+// overflow가 발생함
 function solution(n, paths, gates, summits) {
-  const submmitSet = new Set([...summits]);
+  const gateSet = new Set(gates);
+  const summitSet = new Set(summits);
 
-  const len = n + 1;
-  summits.sort((a, b) => a - b);
+  const graph = {};
+  const v = Array.from({ length: n + 1 }, () => false);
 
-  const graph = Array.from({ length: len }, () => []);
+  paths.forEach(([a, b, intensity]) => {
+    if (graph[a]) graph[a].push([b, intensity]);
+    else graph[a] = [[b, intensity]];
 
-  paths.forEach(([from, to, intense]) => {
-    graph[from].push([to, intense]);
-    graph[to].push([from, intense]);
+    if (graph[b]) graph[b].push([a, intensity]);
+    else graph[b] = [[a, intensity]];
   });
 
-  let result = [Infinity, Infinity];
+  let result = { intensity: Infinity, summits: n };
 
-  // route, 산봉오리 방문 여부, 여태 쌓은 intensity,
-  const bfs = (maxIntensity) => {
-    const v = Array.from({ length: len }, () => 0);
-    gates.forEach((gate) => (v[gate] = 1));
+  gates.forEach((gate) => {
+    const { minIntensity, summits } = search(gate, graph, v, result.intensity);
+    if (result.intensity > minIntensity) {
+      result.summits = summits;
+      result.intensity = minIntensity;
+    } else if (result.intensity == minIntensity && result.summits > summits) {
+      result.summits = summits;
+    }
+  });
 
-    const q = [...gates];
+  function search(startNode, graph, v, startIntensity) {
+    let minIntensity = startIntensity;
+    let summits = Infinity;
 
-    while (q.length) {
-      const node = q.shift();
-      for (const [next, curInten] of graph[node]) {
-        if (v[next]) continue;
-        if (maxIntensity < curInten) continue;
-        v[next] = 1;
-        if (submmitSet.has(next)) continue;
-        q.push(next);
+    function dfs(node, intensity) {
+      if (summitSet.has(node)) {
+        if (minIntensity > intensity) {
+          minIntensity = intensity;
+          summits = node;
+        } else if (minIntensity === intensity && summits > node) {
+          summits = node;
+        }
+
+        return;
+      }
+
+      for (const [nextNode, nextInten] of graph[node]) {
+        if (gateSet.has(nextNode) || v[nextNode]) continue;
+        if (nextInten > minIntensity) continue;
+        v[nextNode] = true;
+        dfs(nextNode, Math.max(nextInten, intensity));
+        v[nextNode] = false;
       }
     }
+    dfs(startNode, 0);
 
-    for (const summit of summits) {
-      if (v[summit]) return summit;
-    }
-  };
-
-  let left = 0;
-  let right = 10_000_000;
-  while (left <= right) {
-    const mid = Math.floor((left + right) / 2);
-    const res = bfs(mid);
-    if (res) {
-      result = [res, mid];
-      right = mid - 1;
-    } else {
-      left = mid + 1;
-    }
+    return { minIntensity, summits };
   }
-
-  return result;
+  return [result.summits, result.intensity];
 }
